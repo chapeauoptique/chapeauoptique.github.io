@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Chapeau Optique - Site Officiel</title>
+    
+    <!-- Google Fonts pour le style PlayOnline / FFXI Rétro Gaming -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@600;700&family=VT323&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Thème Sombre PlayOnline / FFXI Deep Navy */
+            --bg-body: #0a0f1d;
+            --bg-container: #0d152a;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --text-highlight: #60a5fa;
+            
+            /* En-têtes & Bandeaux rayés PlayOnline */
+            --header-bg: linear-gradient(180deg, #182e66 0%, #0d1a3a 100%);
+            --header-border: #3b82f6;
+            --panel-border: #1d4ed8;
+            --panel-inner-bg: rgba(10, 18, 38, 0.95);
+            
+            /* Boutons Rétro FFXI */
+            --btn-bg: linear-gradient(180deg, #2563eb 0%, #1d4ed8 50%, #17387d 100%);
+            --btn-border: #60a5fa;
+            --btn-hover: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            --btn-text: #ffffff;
+            
+            /* Dégradé Orange -> Jaune du titre */
+            --accent-orange: #ff7700;
+            --accent-yellow: #ffe866;
+            --gold-border: #f59e0b;
+            
+            --glow-gold: 0 0 12px rgba(245, 158, 11, 0.6);
+            --glow-blue: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Thème Clair */
+        .light-mode {
+            --bg-body: #e2e8f0;
+            --bg-container: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-highlight: #1e3a8a;
+            
+            --header-bg: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
+            --header-border: #93c5fd;
+            --panel-border: #64748b;
+            --panel-inner-bg: #f8fafc;
+            
+            --btn-bg: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 100%);
+            --btn-border: #64748b;
+            --btn-hover: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+            --btn-text: #0f172a;
+            --glow-gold: none;
+            --glow-blue: none;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Verdana', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(30, 64, 175, 0.25) 0%, transparent 75%),
+                repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+            background-size: 100% 100%, 100% 6px;
+            min-height: 100vh;
+        }
+
+        .pixel-art {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            vertical-align: middle;
+        }
+
+        .top-bar {
+            max-width: 1200px;
+            margin: 15px auto 5px auto;
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-brand-container {
+            max-width: 1200px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 22px;
+            background: var(--header-bg);
+            border: 2px solid var(--header-border);
+            border-radius: 8px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .channel-avatar-wrapper {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            border: 2px solid var(--gold-border);
+            box-shadow: var(--glow-gold), 0 4px 10px rgba(0,0,0,0.8);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #000;
+        }
+
+        .channel-avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .header-title {
+            font-family: 'Cinzel', 'Georgia', serif;
+            font-size: 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, var(--accent-yellow) 0%, var(--accent-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(2px 3px 0px #000000) drop-shadow(0 0 10px rgba(255, 119, 0, 0.5));
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .support-header-btn {
+            background: linear-gradient(180deg, #ff424d 0%, #d12c36 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid #ff7b83;
+            box-shadow: 0 0 12px rgba(255, 66, 77, 0.5), 0 2px 5px rgba(0,0,0,0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .support-header-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 0 18px rgba(255, 66, 77, 0.8);
+        }
+
+        .theme-toggle {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid var(--gold-border);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glow-gold);
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(12deg);
+        }
+
+        .navbar {
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            background: linear-gradient(180deg, #10214a 0%, #081026 100%);
+            border-top: 2px solid var(--header-border);
+            border-bottom: 2px solid var(--gold-border);
+            border-radius: 6px;
+            padding: 8px 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            list-style: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-links li a {
+            color: var(--btn-text);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            border-radius: 4px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.6);
+            display: inline-block;
+            transition: all 0.15s ease;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .nav-links li a:hover, .nav-links li a.active {
+            background: var(--btn-hover);
+            border-color: var(--accent-yellow);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px rgba(255, 232, 102, 0.6);
+        }
+
+        .main-layout {
+            max-width: 1200px;
+            margin: 0 auto 40px auto;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 950px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .header-brand-container {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            .header-title { font-size: 24px; }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .section-header {
+            background: var(--header-bg);
+            color: #ffffff;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px #000;
+            margin-bottom: 15px;
+            border: 1px solid var(--header-border);
+            border-left: 5px solid var(--gold-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .section-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-box {
+            background: var(--panel-inner-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: var(--text-highlight); }
+        .form-control {
+            width: 100%; padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px; color: var(--text-main);
+            font-family: inherit; font-size: 13px;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent-yellow); box-shadow: 0 0 5px rgba(255, 232, 102, 0.5); }
+        textarea.form-control { resize: vertical; min-height: 70px; }
+
+        .submit-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: #fff; padding: 8px 16px; border-radius: 4px;
+            font-weight: bold; font-size: 12px; cursor: pointer;
+            transition: all 0.2s; width: 100%; text-transform: uppercase;
+        }
+        .submit-btn:hover { background: var(--btn-hover); border-color: var(--gold-border); }
+
+        .messages-list, .ideas-list {
+            max-height: 240px; overflow-y: auto; margin-top: 15px;
+            border-top: 1px solid var(--panel-border); padding-top: 10px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .msg-item {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
+            border-left: 3px solid var(--accent-orange); padding: 8px 10px; border-radius: 4px; font-size: 12px;
+        }
+
+        .msg-header { display: flex; justify-content: space-between; color: var(--text-highlight); font-weight: bold; margin-bottom: 3px; font-size: 11px; }
+
+        .idea-item {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
+            border-left: 3px solid var(--accent-yellow); padding: 8px 10px; border-radius: 4px; font-size: 12px;
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+
+        .upvote-btn {
+            background: rgba(255, 119, 0, 0.2); border: 1px solid var(--accent-orange);
+            color: #ffaa00; padding: 3px 8px; border-radius: 3px; cursor: pointer;
+            font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 4px;
+        }
+        .upvote-btn:hover { background: var(--accent-orange); color: #fff; }
+
+        .carousel-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+            padding: 0 40px;
+        }
+
+        .carousel-container {
+            overflow: hidden;
+            width: 100%;
+            border: 2px solid var(--panel-border);
+            background: #000;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .carousel-slide {
+            min-width: 50%;
+            box-sizing: border-box;
+            padding: 8px;
+        }
+
+        @media (max-width: 650px) {
+            .carousel-slide { min-width: 100%; }
+            .carousel-wrapper { padding: 0 30px; }
+        }
+
+        .video-card {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            background: var(--panel-inner-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold-border);
+            box-shadow: var(--glow-gold);
+        }
+
+        .video-thumb-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .video-thumb-container img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .video-card:hover .video-thumb-container img { transform: scale(1.05); }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 44px; height: 44px;
+            background: rgba(239, 68, 68, 0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.6);
+            opacity: 0.85;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .play-overlay::after {
+            content: '';
+            border-style: solid;
+            border-width: 7px 0 7px 12px;
+            border-color: transparent transparent transparent #ffffff;
+            margin-left: 3px;
+        }
+
+        .video-info { padding: 10px; }
+        .video-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+        .video-meta { font-size: 11px; color: var(--text-muted); }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%; transform: translateY(-50%);
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--btn-border);
+            border-radius: 4px;
+            width: 32px; height: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+
+        .carousel-btn:hover { background: var(--btn-hover); border-color: var(--gold-border); }
+        .prev-btn { left: 0; }
+        .next-btn { right: 0; }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--panel-border);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .dot.active {
+            background: var(--accent-yellow);
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 8px var(--accent-yellow);
+            transform: scale(1.3);
+        }
+
+        .live-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(220, 38, 38, 0.25);
+            border: 1px solid #ef4444;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #fca5a5;
+        }
+
+        .red-dot {
+            width: 8px; height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #ef4444;
+            animation: pulse-red 1.2s infinite alternate;
+        }
+
+        @keyframes pulse-red {
+            from { opacity: 0.4; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); box-shadow: 0 0 12px #ff0000; }
+        }
+
+        .twitch-wrapper {
+            border: 2px solid var(--panel-border);
+            border-radius: 6px;
+            background: #000;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+        }
+
+        .twitch-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+        }
+
+        .twitch-offline-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #050a18;
+            background-image: linear-gradient(rgba(3, 6, 19, 0.8), rgba(3, 6, 19, 0.9)), url('JC HULKENBERG.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .offline-card {
+            background: rgba(8, 16, 38, 0.92);
+            border: 2px solid var(--panel-border);
+            border-top: 2px solid var(--accent-orange);
+            padding: 20px 28px;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            backdrop-filter: blur(4px);
+            max-width: 420px;
+        }
+
+        .offline-badge {
+            display: inline-block;
+            background: #dc2626;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 3px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .offline-title { font-size: 16px; color: var(--text-main); margin-bottom: 6px; font-weight: bold; }
+        .offline-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+
+        .twitch-btn {
+            display: inline-block;
+            background: #9146FF;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .twitch-btn:hover { background: #772ce8; transform: scale(1.05); }
+
+        .live-toggle-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toggle-switch-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .vod-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .vod-card {
+            background: var(--panel-inner-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .vod-card:hover { transform: translateY(-3px); border-color: var(--accent-orange); }
+
+        .vod-thumb { position: relative; width: 100%; padding-top: 56.25%; background: #000; }
+        .vod-thumb img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; }
+        .vod-badge {
+            position: absolute; bottom: 5px; right: 5px;
+            background: rgba(0, 0, 0, 0.85); color: #fff;
+            font-size: 10px; padding: 1px 5px; border-radius: 2px; font-weight: bold;
+        }
+
+        .vod-title {
+            padding: 8px 10px; font-size: 11px; font-weight: bold; line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* Modal Soutenir */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1; pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-container);
+            border: 2px solid var(--gold-border);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute; top: 10px; right: 14px;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 20px; cursor: pointer;
+        }
+
+        footer {
+            text-align: center; padding: 20px; font-size: 11px; color: var(--text-muted);
+            border-top: 1px solid var(--panel-border); margin-top: 30px; background: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-brand-container">
+        <div class="header-left-group">
+            <div class="channel-avatar-wrapper" title="Le Chapeau Optique">
+                <img src="image_b0c657.jpg" alt="Avatar Le Chapeau Optique" onerror="this.src='https://placehold.co/100x100/0d1a3a/ff7700?text=LCO';">
+            </div>
+            <h1 class="header-title">Le Chapeau Optique</h1>
+        </div>
+
+        <div class="header-actions">
+            <button class="support-header-btn" id="open-support-modal">
+                ❤️ Soutenir
+            </button>
+            <button class="theme-toggle" id="theme-btn" title="Mode Jour / Nuit">
+                💡
+            </button>
+        </div>
+    </header>
+
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#videos" class="active">Vidéos</a></li>
+            <li><a href="#stream">Stream Twitch</a></li>
+            <li><a href="#vods">VODs</a></li>
+            <li><a href="#guestbook">Livre d'or</a></li>
+            <li><a href="#ideabox">Boîte à idées</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-layout">
+
+        <!-- Sidebar Gauche : Livre d'or & Boîte à Idées -->
+        <aside class="sidebar">
+            
+            <section id="guestbook" class="widget-box">
+                <h3 style="color: var(--accent-yellow); font-family: 'Rajdhani', sans-serif; font-size: 17px; margin-bottom: 12px; border-bottom: 1px solid var(--panel-border); padding-bottom: 5px;">
+                    📖 Livre d'Or
+                </h3>
+                <form id="guestbook-form">
+                    <div class="form-group">
+                        <label for="gb-pseudo">Votre Pseudo :</label>
+                        <input type="text" id="gb-pseudo" class="form-control" placeholder="Aventurier..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gb-message">Votre Message :</label>
+                        <textarea id="gb-message" class="form-control" placeholder="Laissez un mot à la communauté !" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Signer le Livre d'Or</button>
+                </form>
+
+                <div class="messages-list" id="guestbook-messages">
+                    <!-- Dynamic Messages -->
+                </div>
+            </section>
+
+            <section id="ideabox" class="widget-box">
+                <h3 style="color: var(--accent-yellow); font-family: 'Rajdhani', sans-serif; font-size: 17px; margin-bottom: 12px; border-bottom: 1px solid var(--panel-border); padding-bottom: 5px;">
+                    💡 Boîte à Idées
+                </h3>
+                <form id="ideabox-form">
+                    <div class="form-group">
+                        <label for="idea-title">Idée de vidéo / sujet :</label>
+                        <input type="text" id="idea-title" class="form-control" placeholder="Ex: Analyse de la BO de FFXI..." required>
+                    </div>
+                    <button type="submit" class="submit-btn">Soumettre l'idée</button>
+                </form>
+
+                <div class="ideas-list" id="ideas-container">
+                    <!-- Dynamic Ideas -->
+                </div>
+            </section>
+
+        </aside>
+
+        <main class="content-area">
+
+            <!-- Section Vidéos YouTube -->
+            <section id="videos">
+                <div class="section-header">
+                    <div class="section-header-left">
+                        <img src="Lett_FFXIV_Pixel_Animated_V1.gif" alt="Pixel Sprite" class="pixel-art" style="height: 32px; width: auto;" onerror="this.src='https://placehold.co/32x32/1e3a8a/ff7700?text=FF';">
+                        <span>Dernières Vidéos YouTube</span>
+                    </div>
+                    <span style="font-size: 11px; text-transform: none;">
+                        <a href="https://www.youtube.com/@ChapeauOptique/videos" target="_blank" style="color: var(--accent-yellow); text-decoration: none;">Chaîne YouTube &raquo;</a>
+                    </span>
+                </div>
+
+                <div class="carousel-wrapper">
+                    <button class="carousel-btn prev-btn" id="prev-btn" aria-label="Précédent">&#9664;</button>
+                    <div class="carousel-container">
+                        <div class="carousel-track" id="carousel-track">
+                            <!-- Injecté en JS -->
+                        </div>
+                    </div>
+                    <button class="carousel-btn next-btn" id="next-btn" aria-label="Suivant">&#9654;</button>
+                </div>
+
+                <div class="carousel-dots" id="carousel-dots">
+                    <!-- Dots JS -->
+                </div>
+            </section>
+
+            <!-- Section Stream Twitch -->
+            <section id="stream">
+                <div class="section-header">
+                    <div class="section-header-left">
+                        <img src="Cat - Orange - Walk (Left).gif" alt="Cat Pixel Art" class="pixel-art" style="height: 28px; width: auto;" onerror="this.src='https://placehold.co/28x28/1e3a8a/ffcc00?text=CAT';">
+                        <span>Stream en direct (Twitch)</span>
+                        
+                        <div class="live-status-badge" id="live-indicator" style="display: none;">
+                            <span class="red-dot"></span>
+                            <span>EN DIRECT</span>
+                        </div>
+                    </div>
+                    <span style="font-size: 11px; text-transform: none;">
+                        <a href="https://www.twitch.tv/chapeauoptique" target="_blank" style="color: var(--accent-yellow); text-decoration: none;">Twitch.tv/chapeauoptique &raquo;</a>
+                    </span>
+                </div>
+
+                <div class="twitch-wrapper" id="twitch-embed-container">
+                    <div class="twitch-offline-overlay" id="twitch-offline-screen">
+                        <div class="offline-card">
+                            <div class="offline-badge">HORS LIGNE</div>
+                            <div class="offline-title">Le Chapeau Optique n'est pas en direct</div>
+                            <div class="offline-sub">Abonnez-vous sur Twitch pour ne pas rater le prochain stream !</div>
+                            <a href="https://www.twitch.tv/chapeauoptique" target="_blank" class="twitch-btn">Suivre sur Twitch</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="live-toggle-controls">
+                    <span>Simuler statut Stream :</span>
+                    <button class="toggle-switch-btn" id="sim-offline-btn">Hors-ligne</button>
+                    <button class="toggle-switch-btn" id="sim-live-btn" style="background: #22c55e; border-color: #4ade80;">EN DIRECT</button>
+                </div>
+            </section>
+
+            <!-- Section VODs (@ChapeauOptiqueplus) -->
+            <section id="vods">
+                <div class="section-header">
+                    <div class="section-header-left">
+                        <span>Replays & VODs (@ChapeauOptiqueplus)</span>
+                    </div>
+                    <span style="font-size: 11px; text-transform: none;">
+                        <a href="https://www.youtube.com/@ChapeauOptiqueplus" target="_blank" style="color: var(--accent-yellow); text-decoration: none;">Chaîne VOD &raquo;</a>
+                    </span>
+                </div>
+
+                <div class="vod-grid" id="vod-grid">
+                    <!-- Injecté en JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="support-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-support-modal">&times;</button>
+            <h2 style="color: var(--accent-yellow); font-family: 'Cinzel', serif; margin-bottom: 10px;">💖 Soutenir Le Chapeau Optique</h2>
+            <p style="font-size: 13px; color: var(--text-main); margin-bottom: 20px;">
+                Merci de contribuer au financement des projets et des vidéos de la chaîne !
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="https://www.patreon.com" target="_blank" class="submit-btn" style="background: linear-gradient(180deg, #ff424d 0%, #d12c36 100%); border-color: #ff7b83; text-decoration: none; padding: 12px;">
+                    🧡 Soutenir sur Patreon
+                </a>
+                <a href="https://www.youtube.com/@ChapeauOptique/join" target="_blank" class="submit-btn" style="text-decoration: none; padding: 12px;">
+                    ⭐ Devenir Membre VIP YouTube
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 <strong>Le Chapeau Optique</strong> - Site Officiel.</p>
+        <p style="margin-top: 4px; opacity: 0.7;">Inspiré du style rétro PlayOnline & Final Fantasy XI.</p>
+    </footer>
+
+    <script>
+        // --- Theme Toggle ---
+        const themeBtn = document.getElementById('theme-btn');
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+
+        // --- Support Modal ---
+        const supportModal = document.getElementById('support-modal');
+        document.getElementById('open-support-modal').addEventListener('click', () => supportModal.classList.add('active'));
+        document.getElementById('close-support-modal').addEventListener('click', () => supportModal.classList.remove('active'));
+        supportModal.addEventListener('click', (e) => { if(e.target === supportModal) supportModal.classList.remove('active'); });
+
+        // --- YouTube Carousel ---
+        const videosData = [
+            { id: "vid1", title: "LE RETOUR DU JEU PARFAIT ? Analyse & Avis !", img: "https://placehold.co/640x360/0d1a3a/ff7700?text=Analyse+YouTube+1", date: "Il y a 2 jours", link: "https://www.youtube.com/@ChapeauOptique/videos" },
+            { id: "vid2", title: "Découverte des pépites Rétro oubliées de l'histoire !", img: "https://placehold.co/640x360/182e66/ffe866?text=Pepites+Retro+2", date: "Il y a 5 jours", link: "https://www.youtube.com/@ChapeauOptique/videos" },
+            { id: "vid3", title: "Guide Ultime : Bien débuter en 2026 sans perdre de temps", img: "https://placehold.co/640x360/081026/ffffff?text=Guide+Ultime+3", date: "Il y a 1 semaine", link: "https://www.youtube.com/@ChapeauOptique/videos" },
+            { id: "vid4", title: "FAQ #10 : On répond à TOUTES vos questions !", img: "https://placehold.co/640x360/1e3a8a/ff7700?text=FAQ+Communaute+4", date: "Il y a 2 semaines", link: "https://www.youtube.com/@ChapeauOptique/videos" }
+        ];
+
+        const track = document.getElementById('carousel-track');
+        const dotsContainer = document.getElementById('carousel-dots');
+        let currentSlideIndex = 0;
+        let autoSlideTimer = null;
+
+        function renderCarousel() {
+            track.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            videosData.forEach((vid, idx) => {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide';
+                slide.innerHTML = `
+                    <a href="${vid.link}" target="_blank" class="video-card">
+                        <div class="video-thumb-container">
+                            <img src="${vid.img}" alt="${vid.title}">
+                            <div class="play-overlay"></div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">${vid.title}</div>
+                            <div class="video-meta">${vid.date} &bull; Le Chapeau Optique</div>
+                        </div>
+                    </a>
+                `;
+                track.appendChild(slide);
+
+                const dot = document.createElement('div');
+                dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', () => { goToSlide(idx); resetAutoSlide(); });
+                dotsContainer.appendChild(dot);
+            });
+
+            updateCarouselState();
+        }
+
+        function getVisibleCount() { return window.innerWidth <= 650 ? 1 : 2; }
+
+        function updateCarouselState() {
+            const visibleCount = getVisibleCount();
+            const maxIndex = Math.max(0, videosData.length - visibleCount);
+            if (currentSlideIndex > maxIndex) currentSlideIndex = maxIndex;
+
+            const slidePercent = 100 / visibleCount;
+            track.style.transform = `translateX(-${currentSlideIndex * slidePercent}%)`;
+
+            const dots = dotsContainer.querySelectorAll('.dot');
+            dots.forEach((dot, index) => dot.classList.toggle('active', index === currentSlideIndex));
+        }
+
+        function goToSlide(index) { currentSlideIndex = index; updateCarouselState(); }
+        function nextSlide() {
+            const visibleCount = getVisibleCount();
+            currentSlideIndex = (currentSlideIndex < videosData.length - visibleCount) ? currentSlideIndex + 1 : 0;
+            updateCarouselState();
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => { nextSlide(); resetAutoSlide(); });
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            currentSlideIndex = currentSlideIndex > 0 ? currentSlideIndex - 1 : videosData.length - getVisibleCount();
+            updateCarouselState();
+            resetAutoSlide();
+        });
+
+        function startAutoSlide() { autoSlideTimer = setInterval(nextSlide, 4500); }
+        function resetAutoSlide() { clearInterval(autoSlideTimer); startAutoSlide(); }
+
+        const wrapper = document.querySelector('.carousel-wrapper');
+        wrapper.addEventListener('mouseenter', () => clearInterval(autoSlideTimer));
+        wrapper.addEventListener('mouseleave', () => startAutoSlide());
+
+        // --- Twitch Toggle Logic ---
+        const twitchContainer = document.getElementById('twitch-embed-container');
+        const liveIndicator = document.getElementById('live-indicator');
+        const offlineScreen = document.getElementById('twitch-offline-screen');
+
+        function updateTwitchStatus(isLive) {
+            const hostname = window.location.hostname || 'localhost';
+            if (isLive) {
+                liveIndicator.style.display = 'inline-flex';
+                offlineScreen.style.display = 'none';
+                if (!twitchContainer.querySelector('iframe')) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://player.twitch.tv/?channel=chapeauoptique&parent=${hostname}&autoplay=true`;
+                    iframe.allowFullscreen = true;
+                    twitchContainer.appendChild(iframe);
+                }
+            } else {
+                liveIndicator.style.display = 'none';
+                offlineScreen.style.display = 'flex';
+                const iframe = twitchContainer.querySelector('iframe');
+                if (iframe) iframe.remove();
+            }
+        }
+
+        document.getElementById('sim-offline-btn').addEventListener('click', () => updateTwitchStatus(false));
+        document.getElementById('sim-live-btn').addEventListener('click', () => updateTwitchStatus(true));
+
+        // --- VODs Data ---
+        const vodsData = [
+            { title: "REPLAY STREAM - Session rétro gaming & Tchat", img: "https://placehold.co/400x225/081026/ff7700?text=VOD+1", duration: "2h 45m" },
+            { title: "REPLAY - Marathon du Samedi Soir", img: "https://placehold.co/400x225/182e66/ffe866?text=VOD+2", duration: "3h 12m" },
+            { title: "REPLAY - Soirée Découverte & Discussion", img: "https://placehold.co/400x225/0d1a3a/ffffff?text=VOD+3", duration: "1h 50m" }
+        ];
+
+        function renderVODs() {
+            const grid = document.getElementById('vod-grid');
+            grid.innerHTML = vodsData.map(vod => `
+                <a href="https://www.youtube.com/@ChapeauOptiqueplus" target="_blank" class="vod-card">
+                    <div class="vod-thumb">
+                        <img src="${vod.img}" alt="${vod.title}">
+                        <div class="vod-badge">${vod.duration}</div>
+                    </div>
+                    <div class="vod-title">${vod.title}</div>
+                </a>
+            `).join('');
+        }
+
+        // --- Guestbook Logic ---
+        const defaultMessages = [
+            { pseudo: "MogFan", text: "Superbe site rétro ! Très fidèle au style PlayOnline." },
+            { pseudo: "RetroGamer", text: "Longue vie à la chaîne Le Chapeau Optique !" }
+        ];
+
+        function loadGuestbook() {
+            const saved = localStorage.getItem('chapeau_guestbook');
+            const messages = saved ? JSON.parse(saved) : defaultMessages;
+            const container = document.getElementById('guestbook-messages');
+            container.innerHTML = messages.map(msg => `
+                <div class="msg-item">
+                    <div class="msg-header">
+                        <span>${escapeHtml(msg.pseudo)}</span>
+                    </div>
+                    <div>${escapeHtml(msg.text)}</div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('guestbook-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pseudo = document.getElementById('gb-pseudo').value.trim();
+            const text = document.getElementById('gb-message').value.trim();
+            if (pseudo && text) {
+                const saved = localStorage.getItem('chapeau_guestbook');
+                const messages = saved ? JSON.parse(saved) : defaultMessages;
+                messages.unshift({ pseudo, text });
+                localStorage.setItem('chapeau_guestbook', JSON.stringify(messages));
+                document.getElementById('gb-pseudo').value = '';
+                document.getElementById('gb-message').value = '';
+                loadGuestbook();
+            }
+        });
+
+        // --- Idea Box Logic ---
+        const defaultIdeas = [
+            { id: 1, title: "Analyse des musiques de jeux vidéo rétro", votes: 14 },
+            { id: 2, title: "Marathon rétro gaming en stream", votes: 9 }
+        ];
+
+        function loadIdeas() {
+            const saved = localStorage.getItem('chapeau_ideas');
+            const ideas = saved ? JSON.parse(saved) : defaultIdeas;
+            ideas.sort((a, b) => b.votes - a.votes);
+            const container = document.getElementById('ideas-container');
+            container.innerHTML = ideas.map(idea => `
+                <div class="idea-item">
+                    <span>${escapeHtml(idea.title)}</span>
+                    <button class="upvote-btn" onclick="upvoteIdea(${idea.id})">▲ ${idea.votes}</button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('ideabox-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('idea-title').value.trim();
+            if (title) {
+                const saved = localStorage.getItem('chapeau_ideas');
+                const ideas = saved ? JSON.parse(saved) : defaultIdeas;
+                ideas.push({ id: Date.now(), title, votes: 1 });
+                localStorage.setItem('chapeau_ideas', JSON.stringify(ideas));
+                document.getElementById('idea-title').value = '';
+                loadIdeas();
+            }
+        });
+
+        window.upvoteIdea = function(id) {
+            const saved = localStorage.getItem('chapeau_ideas');
+            const ideas = saved ? JSON.parse(saved) : defaultIdeas;
+            const idea = ideas.find(i => i.id === id);
+            if (idea) {
+                idea.votes++;
+                localStorage.setItem('chapeau_ideas', JSON.stringify(ideas));
+                loadIdeas();
+            }
+        };
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        window.addEventListener('load', () => {
+            renderCarousel();
+            startAutoSlide();
+            renderVODs();
+            loadGuestbook();
+            loadIdeas();
+            updateTwitchStatus(false);
+        });
+
+        window.addEventListener('resize', updateCarouselState);
+    </script>
+</body>
+</html>
