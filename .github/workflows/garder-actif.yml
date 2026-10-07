@@ -1,0 +1,32 @@
+name: Garder Supabase actif
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  garder-actif:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Réveiller Supabase
+        env:
+          SUPABASE_URL: https://zdnvvokecziiwdcrmzwv.supabase.co
+          SUPABASE_KEY: sb_publishable_dDmIBev0F6b6g_VRq7_5iA_eEZNUe3g
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/suggestions?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY")
+          echo "Supabase a répondu : HTTP $code"
+          test "$code" = "200"
+
+      - name: Garder le workflow actif
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow enable garder-actif.yml
