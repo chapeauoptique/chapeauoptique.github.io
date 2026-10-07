@@ -1,0 +1,43 @@
+# À placer dans le dépôt sous : .github/workflows/garder-actif.yml
+#
+# Chaque jour :
+#   1. envoie une petite requête de lecture à Supabase, pour que l'offre gratuite ne mette pas le projet en pause
+#      (elle pause après 7 jours de faible activité) ;
+#   2. réactive cette même tâche auprès de GitHub, pour que GitHub ne la désactive pas
+#      (il désactive les tâches planifiées d'un dépôt public sans activité depuis 60 jours).
+#
+# Si Supabase ne répond pas correctement, la tâche passe en échec et GitHub t'envoie un e-mail : c'est l'alerte.
+
+name: Garder Supabase actif
+
+on:
+  schedule:
+    - cron: "23 5 * * *"   # tous les jours à 05h23 UTC (07h23 en été à Paris)
+  workflow_dispatch: {}      # permet aussi de la lancer à la main (onglet Actions > Run workflow)
+
+permissions:
+  contents: read
+  actions: write             # nécessaire pour réactiver cette tâche (étape 2)
+
+jobs:
+  garder-actif:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Requête vers Supabase
+        env:
+          SUPABASE_URL: https://zdnvvokecziiwdcrmzwv.supabase.co
+          # Clé publique (la même que dans index.html), sans danger dans un dépôt public
+          SUPABASE_KEY: sb_publishable_dDmIBev0F6b6g_VRq7_5iA_eEZNUe3g
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/suggestions?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY")
+          echo "Supabase a répondu : HTTP $code"
+          test "$code" = "200"
+
+      - name: Empêcher GitHub de désactiver cette tâche
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow enable garder-actif.yml
