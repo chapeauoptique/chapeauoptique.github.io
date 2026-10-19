@@ -1,0 +1,65 @@
+# À placer dans le dépôt sous : .github/workflows/quizz-du-jour.yml
+#
+# Chaque jour, juste après le changement de jour du Quizz (minuit UTC), poste dans le salon Discord
+# de la communauté : « Le quizz du jour est disponible », avec le lien vers le site.
+#
+# L'adresse du webhook Discord n'est JAMAIS écrite ici : elle est dans le secret GitHub
+# DISCORD_WEBHOOK_QUIZZ (Settings > Secrets and variables > Actions).
+# Si l'envoi échoue, la tâche passe en échec et GitHub t'envoie un e-mail.
+
+name: Annonce du quizz du jour (Discord)
+
+on:
+  schedule:
+    - cron: "5 0 * * *"    # tous les jours à 00h05 UTC (01h05 en hiver, 02h05 en été à Paris)
+  workflow_dispatch: {}      # test à la main : onglet Actions > « Annonce du quizz du jour » > Run workflow
+
+permissions:
+  contents: read
+  actions: write             # pour réactiver cette tâche (voir la dernière étape)
+
+concurrency:
+  group: quizz-du-jour
+  cancel-in-progress: false
+
+jobs:
+  annonce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Poster l'annonce dans le salon Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_QUIZZ }}
+          SITE: https://chapeauoptique.github.io/#quizz
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::Le secret DISCORD_WEBHOOK_QUIZZ est absent (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          JOUR=$(date -u +"%d/%m/%Y")
+          PAYLOAD=$(jq -n --arg jour "$JOUR" --arg site "$SITE" '{
+            username: "Chapeau Optique",
+            content: "Le quizz du jour est disponible !",
+            embeds: [{
+              title: ("Quizz JRPG — défi du " + $jour),
+              url: $site,
+              description: ("5 questions tirées au hasard pour toi, 20 secondes chacune, 100 points par bonne réponse.\n[Jouer sur le site](" + $site + ")"),
+              color: 15123292
+            }],
+            allowed_mentions: { parse: [] }
+          }')
+          # --fail-with-body : la tâche échoue si Discord refuse (webhook supprimé, URL fausse…)
+          # --retry : nouvel essai en cas de coupure réseau ou de limite de débit (429)
+          curl --fail-with-body --silent --show-error \
+               --retry 3 --retry-delay 15 --retry-all-errors \
+               -H "Content-Type: application/json" \
+               -d "$PAYLOAD" "$WEBHOOK"
+          echo "Annonce envoyée pour le $JOUR."
+
+      - name: Empêcher GitHub de désactiver cette tâche
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow enable quizz-du-jour.yml
