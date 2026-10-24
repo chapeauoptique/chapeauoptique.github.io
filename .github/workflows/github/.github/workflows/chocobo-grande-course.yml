@@ -1,0 +1,98 @@
+# À placer dans le dépôt sous : .github/workflows/chocobo-grande-course.yml
+#
+# Grande course Chocobo PMU de 16 h (heure de Paris) :
+#  - vers 8 h : annonce « les paris sont ouverts jusqu'à 16 h » dans le salon Discord ;
+#  - vers 16 h : appelle la fonction chocobo_planificateur() de Supabase (idempotente : elle
+#    résout la course échue, même si aucun visiteur n'est sur le site), puis poste les résultats.
+# GitHub n'a pas d'heure de Paris : la tâche tourne à deux heures UTC (été / hiver) et ne
+# continue que si l'heure de Paris est la bonne. Les tâches planifiées peuvent partir avec
+# quelques minutes de retard.
+#
+# Secrets : l'adresse du webhook Discord est UNIQUEMENT dans le secret GitHub DISCORD_WEBHOOK_QUIZZ
+# (le même que l'annonce du quizz). La clé Supabase utilisée est la clé PUBLIQUE du site (déjà dans
+# index.html) : ce n'est pas un secret, mais on peut la mettre dans le secret SUPABASE_ANON.
+# Rien ne part si le jeu Chocobo PMU n'est pas Ouvert (la fonction répond « ouvert : false »).
+
+name: Chocobo PMU — grande course de 16 h (Discord)
+
+on:
+  schedule:
+    - cron: "2 6,7 * * *"     # 8 h 02 à Paris (6 h UTC en été, 7 h UTC en hiver)
+    - cron: "2 14,15 * * *"   # 16 h 02 à Paris (14 h UTC en été, 15 h UTC en hiver)
+  workflow_dispatch:
+    inputs:
+      moment:
+        description: "ouverture (annonce de 8 h) ou resultat (16 h)"
+        required: true
+        default: resultat
+        type: choice
+        options: [ouverture, resultat]
+
+permissions:
+  contents: read
+  actions: write             # pour réactiver cette tâche (dernière étape)
+
+concurrency:
+  group: chocobo-grande-course
+  cancel-in-progress: false
+
+jobs:
+  annonce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Résoudre la course (si besoin) et poster sur Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_QUIZZ }}
+          SUPABASE_URL: https://zdnvvokecziiwdcrmzwv.supabase.co
+          CLE_PUBLIQUE: ${{ secrets.SUPABASE_ANON || 'sb_publishable_dDmIBev0F6b6g_VRq7_5iA_eEZNUe3g' }}
+          SITE: https://chapeauoptique.github.io/mini-jeux.html#chocobo
+          MOMENT_MANUEL: ${{ github.event.inputs.moment }}
+        run: |
+          set -euo pipefail
+          HEURE=$(TZ=Europe/Paris date +%H)
+          if [ -n "${MOMENT_MANUEL:-}" ]; then MOMENT="$MOMENT_MANUEL"
+          elif [ "$HEURE" = "08" ]; then MOMENT=ouverture
+          elif [ "$HEURE" = "16" ]; then MOMENT=resultat
+          else echo "Il est ${HEURE} h à Paris : rien à faire (l'autre horaire UTC s'en charge)."; exit 0; fi
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::Le secret DISCORD_WEBHOOK_QUIZZ est absent (Settings > Secrets and variables > Actions)."; exit 1
+          fi
+          REP=$(curl --fail-with-body --silent --show-error --retry 3 --retry-delay 10 --retry-all-errors \
+                -X POST "$SUPABASE_URL/rest/v1/rpc/chocobo_planificateur" \
+                -H "apikey: $CLE_PUBLIQUE" -H "Content-Type: application/json" -d '{}')
+          echo "Réponse : $REP"
+          if [ "$(echo "$REP" | jq -r '.ouvert')" != "true" ]; then echo "Chocobo PMU n'est pas Ouvert : pas d'annonce."; exit 0; fi
+          MULT=$(echo "$REP" | jq -r '.multiplicateur')
+          if [ "$MOMENT" = "ouverture" ]; then
+            PAYLOAD=$(jq -n --arg site "$SITE" --arg mult "$MULT" '{
+              username: "Chapeau Optique",
+              content: "🐤 Les paris de la grande course Chocobo PMU sont ouverts !",
+              embeds: [{ title: "Grande course de 16 h", url: $site,
+                description: ("Un pari par joueur, en Gils, jusqu'"'"'à 16 h. Bonus pour tous les participants" + (if ($mult|tonumber) > 1 then " (×" + $mult + " aujourd'"'"'hui)" else "" end) + ".\n[Parier sur le site](" + $site + ")"),
+                color: 15123292 }],
+              allowed_mentions: { parse: [] } }')
+          else
+            if [ "$(echo "$REP" | jq -r '.derniere.jour // empty')" != "$(TZ=Europe/Paris date +%Y-%m-%d)" ]; then echo "Pas de grande course résolue aujourd'hui."; exit 0; fi
+            PAYLOAD=$(echo "$REP" | jq --arg site "$SITE" '{
+              username: "Chapeau Optique",
+              content: ("🏆 Grande course Chocobo PMU : " + .derniere.gagnant + " l'"'"'emporte !"),
+              embeds: [{ title: "Résultats de la grande course", url: $site,
+                description: ((if .derniere.humeur then .derniere.humeur + " était en feu ! " else "" end)
+                  + (.derniere.parieurs|tostring) + " parieur(s), cagnotte de " + (.derniere.pot|tostring) + " Gils."
+                  + ([.derniere.recompenses[] | "\n🎖️ " + .pseudo + " gagne le badge « " + .nom + " »"] | join(""))
+                  + "\nProchaine course demain à 16 h. [Revoir la course](" + $site + ")"),
+                color: 15123292 }],
+              allowed_mentions: { parse: [] } }')
+          fi
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 15 --retry-all-errors \
+               -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK"
+          echo "Annonce « $MOMENT » envoyée."
+
+      - name: Empêcher GitHub de désactiver cette tâche
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow enable chocobo-grande-course.yml
