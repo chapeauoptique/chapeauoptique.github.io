@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini-jeux · Chapeau Optique</title>
+<meta name="description" content="Les mini-jeux de Chapeau Optique : règles, défis du jour et classements.">
+<meta name="theme-color" content="#d8d2bd">
+<script>/* thème mémorisé, appliqué avant l'affichage (clair par défaut) */
+try{ if(localStorage.getItem("theme") === "sombre") document.documentElement.dataset.theme = "sombre"; }catch{}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* ===== Palette NieR : crème / sépia, encre brune, ocre pour l'actif ===== */
+:root{
+  --creme:#d8d2bd; --creme2:#cdc6ae; --papier:#e6e1ce; --encre:#4a4636; --encre2:#5c5744;
+  --ocre:#e6c35c; --ocre2:#c9a640; --quad:rgba(74,70,54,.07); --ligne:rgba(74,70,54,.3);
+  --bon:#4f6b3a; --mauvais:#8e4433;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif; --corps:"Barlow",system-ui,sans-serif;
+  --mono:"Share Tech Mono",ui-monospace,Consolas,monospace; --pixel:"Press Start 2P",monospace;
+  --barre-bas:0px;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}   /* piège connu : un display:grid/block d'auteur écrasait [hidden] */
+html{scroll-behavior:smooth;scroll-padding-top:4.5rem;-webkit-text-size-adjust:100%}
+body{margin:0;min-width:0;overflow-x:hidden;color:var(--encre);font:1.02rem/1.55 var(--corps);
+  background-color:var(--creme);
+  background-image:linear-gradient(var(--quad) 1px,transparent 1px),linear-gradient(90deg,var(--quad) 1px,transparent 1px);
+  background-size:7px 7px;padding-bottom:var(--barre-bas)}
+a{color:var(--encre);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--encre);outline-offset:2px;box-shadow:0 0 0 4px var(--ocre)}
+.wrap{width:min(80rem,100% - 2rem);margin-inline:auto}
+.visuel-masque{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pointilles{height:6px;margin:1.2rem 0;opacity:.55;
+  background:radial-gradient(circle,var(--encre) 1.3px,transparent 1.8px) 0 0/11px 6px repeat-x}
+
+/* ===== En-tête : logo centré, camion à droite ===== */
+.haut{position:relative;z-index:20;overflow:hidden;border-bottom:1px solid var(--encre);
+  padding-top:env(safe-area-inset-top,0px);background:rgba(205,198,174,.6)}
+.haut>img.fond{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;
+  filter:sepia(.8) saturate(.6) contrast(.9);mix-blend-mode:multiply;pointer-events:none}
+.haut .elfe{position:absolute;left:-1.5rem;bottom:-1.5rem;height:125%;width:auto;opacity:.16;
+  filter:sepia(1) saturate(.4);mix-blend-mode:multiply;pointer-events:none;
+  -webkit-mask-image:linear-gradient(270deg,transparent,#000 60%);mask-image:linear-gradient(270deg,transparent,#000 60%)}
+.haut-grille{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;padding-block:.8rem .4rem}
+.badge{justify-self:start;display:flex;align-items:center;gap:.55rem;min-width:0;padding:.3rem .6rem .3rem .3rem;
+  background:var(--papier);border:1px solid var(--encre);cursor:pointer;font:600 .95rem var(--cond);letter-spacing:.06em;text-transform:uppercase}
+.badge:hover{background:var(--encre);color:var(--creme)}
+.avatar{flex:none;display:grid;place-items:center;width:2rem;height:2rem;background:var(--encre);color:var(--ocre);
+  font:700 1.05rem var(--cond);text-transform:uppercase}
+.badge:hover .avatar{background:var(--ocre);color:var(--encre)}
+.badge-nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:9rem}
+.logo{display:flex;align-items:center;gap:.9rem;text-decoration:none;color:var(--encre)}
+.profil{flex:none;width:clamp(3.4rem,9vw,5rem);aspect-ratio:1;border-radius:50%;border:2px solid var(--encre);
+  box-shadow:0 0 0 4px var(--creme),0 0 0 5px var(--encre)}
+.logo h1{margin:0;font:700 clamp(1.5rem,4.2vw,2.6rem)/1 var(--cond);letter-spacing:.18em;text-transform:uppercase}
+.logo h1 small{display:block;margin-bottom:.25rem;font:400 .8rem var(--mono);letter-spacing:.3em;color:var(--encre2)}
+.accroche{position:relative;margin:0;padding:.1rem 1rem .7rem;text-align:center;font:italic 1rem var(--corps);color:var(--encre2)}
+
+/* ===== Camion : « Soutenir la chaîne » posé sur la portière (conservé) ===== */
+.camion{--w:clamp(10.5rem,38vw,14rem);justify-self:end;position:relative;flex:none;width:var(--w);aspect-ratio:541/297}
+.camion-img{width:100%;height:100%;pointer-events:none;user-select:none}
+.soutien{position:absolute;left:14%;top:56%;width:38%;height:25%}
+.soutien summary{list-style:none;cursor:pointer;height:100%;display:flex;align-items:center;justify-content:center;gap:3%;
+  padding:0 2%;font:600 calc(var(--w) * .05)/1.05 var(--cond);letter-spacing:.03em;text-align:left;color:var(--creme);
+  background:rgba(74,70,54,.92);border:1px solid var(--ocre);transition:background .2s,color .2s}
+.soutien summary:hover,.soutien[open] summary{background:var(--ocre);color:var(--encre)}
+.coeur{flex:none;width:calc(var(--w) * .075);height:calc(var(--w) * .075);image-rendering:pixelated}
+.soutien summary::-webkit-details-marker{display:none}
+.menu{position:absolute;right:0;top:calc(100% + .35rem);z-index:30;font-size:1rem;width:15.5rem;max-width:calc(100vw - 1rem);padding:.4rem;
+  background:var(--papier);border:1px solid var(--encre);box-shadow:4px 4px 0 rgba(74,70,54,.25)}
+.menu a{display:block;padding:.6rem .75rem;color:var(--encre);text-decoration:none;font-weight:600}
+.menu a:hover,.menu a:focus-visible{background:var(--encre);color:var(--creme)}
+.menu small{display:block;font-weight:400;opacity:.8;font-size:.85rem}
+
+/* ===== Barre d'onglets (bureau) ===== */
+.nav-onglets{position:sticky;top:0;z-index:15;background:rgba(216,210,189,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--encre)}
+.nav-onglets>ul{display:flex;gap:.4rem;margin-block:0;padding:.5rem 0;list-style:none}
+.nav-onglets li{position:relative}
+.nav-onglets a,.nav-onglets button{display:flex;align-items:center;gap:.4rem;padding:.38rem 1.2rem;border:1px solid var(--encre);
+  background:var(--creme2);color:var(--encre);font:600 1.02rem var(--cond);letter-spacing:.16em;text-transform:uppercase;
+  text-decoration:none;cursor:pointer}
+.nav-onglets a::before,.nav-onglets button::before{content:"";width:.5rem;height:.5rem;background:var(--encre);opacity:.35}
+.nav-onglets a:hover,.nav-onglets button:hover{background:var(--encre);color:var(--creme)}
+.nav-onglets [aria-current="true"],.nav-onglets button[aria-expanded="true"]{background:var(--ocre);color:var(--encre)}
+.nav-onglets [aria-current="true"]::before{opacity:1}
+.sous-menu{position:absolute;left:0;top:calc(100% + .3rem);z-index:20;min-width:13rem;margin:0;padding:.3rem;list-style:none;
+  background:var(--papier);border:1px solid var(--encre);box-shadow:4px 4px 0 rgba(74,70,54,.25)}
+.nav-onglets .sous-menu a{border:0;background:none;padding:.45rem .7rem;letter-spacing:.1em}
+.nav-onglets .sous-menu a:hover,.nav-onglets .sous-menu a:focus-visible{background:var(--encre);color:var(--creme)}
+
+/* ===== Grille principale ===== */
+.page{display:grid;grid-template-columns:minmax(0,1fr) 23.5rem;gap:1.6rem;align-items:start;padding-block:1.4rem 0}
+.col-main,.col-side{display:grid;gap:1.6rem;min-width:0}
+.duo{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:1.6rem;align-items:stretch}
+
+/* ===== Cadres « chip » : crans de puce au-dessus, coins carrés ===== */
+.chip{position:relative;min-width:0;margin-top:10px;background:rgba(230,225,206,.82);border:1px solid var(--encre);
+  box-shadow:4px 4px 0 rgba(74,70,54,.16);display:flex;flex-direction:column}
+.chip::before{content:"";position:absolute;left:12px;top:-10px;width:70px;height:6px;
+  background:repeating-linear-gradient(90deg,var(--encre) 0 6px,transparent 6px 11px)}
+.chip::after{content:"";position:absolute;right:12px;top:-10px;width:28px;height:6px;
+  background:repeating-linear-gradient(90deg,var(--encre) 0 6px,transparent 6px 11px);opacity:.5}
+.chip>h2{margin:0}
+.chip-btn{display:flex;align-items:center;gap:.7rem;width:100%;padding:.5rem .9rem;border:0;background:var(--encre);color:var(--creme);
+  font:600 1.15rem var(--cond);letter-spacing:.14em;text-transform:uppercase;text-align:left;cursor:default}
+.puce{flex:none;padding:0 .4rem;background:var(--creme);color:var(--encre);font:400 .72rem/1.5 var(--mono);letter-spacing:.12em}
+.chip-titre{flex:1;min-width:0}
+.chip-fleche{display:none;flex:none;width:.6rem;height:.6rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.chip-btn[aria-expanded="false"] .chip-fleche{transform:rotate(-45deg)}
+.chip-corps{padding:1rem;min-width:0;flex:1;display:flex;flex-direction:column}
+.chip-pied{margin:.6rem 0 0;font:400 .9rem var(--mono)}
+
+/* ===== Carrousels (vidéos et VOD, conservés) ===== */
+.carrousel{position:relative}
+.piste{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding:.25rem .25rem 1rem;counter-reset:puce;
+  scrollbar-width:thin;scrollbar-color:var(--encre) transparent}
+.carte{position:relative;flex:0 0 min(80%,17rem);scroll-snap-align:start;background:var(--papier);border:1px solid var(--encre);
+  color:var(--encre);text-decoration:none;counter-increment:puce;transition:transform .2s,background .2s}
+.carte::before{content:var(--etiquette,"VIDÉO") " " counter(puce,decimal-leading-zero);display:block;padding:.15rem .5rem;
+  border-bottom:1px solid var(--encre);font:400 .72rem var(--mono);letter-spacing:.14em}
+.carte:hover,.carte:focus-visible{transform:translateY(-3px);background:var(--ocre)}
+.carte img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--creme2);filter:sepia(.15)}
+.carte span{display:block;padding:.6rem .7rem .8rem;font:500 .98rem/1.3 var(--corps)}
+.fleche{position:absolute;top:38%;z-index:2;width:2.4rem;height:2.4rem;border:1px solid var(--encre);
+  background:var(--papier);color:var(--encre);font-size:1.3rem;line-height:1;cursor:pointer}
+.fleche:hover{background:var(--encre);color:var(--creme)}
+.fleche.g{left:-.5rem}.fleche.d{right:-.5rem}
+@media(hover:none){.fleche{display:none}}
+.statut{padding:.6rem;opacity:.85}
+[data-source="vod"]{--etiquette:"VOD"}
+
+/* ===== Live Twitch (conservé) ===== */
+.live{position:relative;aspect-ratio:16/9;background:var(--encre);border:1px solid var(--encre);overflow:hidden}
+#lecteur,#lecteur iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.live:not(.en-ligne) #lecteur{visibility:hidden}
+.hors{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:.6rem;text-align:center;background:var(--encre)}
+.hors img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.7) brightness(.45)}
+.hors p,.hors a{position:relative;margin:0}
+.hors p{font:600 1.3rem var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--creme)}
+.live.en-ligne .hors{display:none}
+#lecteur>.lecteur-chaine{position:absolute;inset:0}
+#lecteur>.lecteur-chaine.cache{visibility:hidden;pointer-events:none}
+.chaines{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 .6rem}
+.chaine{display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .8rem;border:1px solid var(--encre);background:var(--papier);
+  font:400 .85rem var(--mono);letter-spacing:.06em;cursor:pointer}
+.chaine::before{content:"";width:.45rem;height:.45rem;background:var(--encre);opacity:.3}
+.chaine:hover{background:var(--encre);color:var(--creme)}
+.chaine[aria-pressed="true"]{background:var(--ocre);color:var(--encre)}
+.chaine[aria-pressed="true"]::before{opacity:1}
+.chaine .direct{padding:0 .3rem;background:var(--mauvais);color:#fff;font:600 .68rem/1.5 var(--cond);letter-spacing:.1em}
+.barre{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.8rem;
+  margin-top:.9rem;padding:.8rem 5.5rem .8rem 1rem;min-height:5rem;border:1px dashed var(--encre);background:var(--creme2)}
+.barre p{margin:0;max-width:30rem}
+.barre img{position:absolute;right:.9rem;top:50%;width:3.8rem;height:3.8rem;transform:translateY(-50%);pointer-events:none}
+.bouton{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem 1.1rem;border:1px solid var(--encre);
+  background:var(--encre);color:var(--creme);font:600 1rem var(--cond);letter-spacing:.12em;text-transform:uppercase;
+  text-decoration:none;cursor:pointer;transition:background .15s,color .15s}
+.bouton:hover{background:var(--ocre);color:var(--encre)}
+.bouton:disabled{opacity:.5;cursor:wait}
+.bouton.clair{background:var(--papier);color:var(--encre)}
+.bouton.clair:hover{background:var(--encre);color:var(--creme)}
+
+/* ===== VOD : liste verticale défilante à côté du stream (bureau) ===== */
+@media(min-width:62rem){
+  #vod .chip-corps{position:relative;min-height:18rem}
+  #vod .carrousel{position:absolute;inset:1.5rem 1rem 3.3rem}
+  #vod .chip-pied{position:absolute;left:1rem;bottom:.8rem;margin:0}
+  #vod .piste{flex-direction:column;height:100%;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y proximity;padding:.1rem .5rem .1rem .1rem;gap:.6rem}
+  #vod .carte{flex:none;display:grid;grid-template-columns:7.2rem minmax(0,1fr);grid-template-rows:auto 1fr;align-items:start}
+  #vod .carte::before{grid-column:1/-1}
+  #vod .carte img{border-right:1px solid var(--encre)}
+  #vod .carte span{padding:.35rem .55rem;font-size:.9rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  #vod .carte:hover{transform:translateX(3px)}
+  #vod .fleche{left:50%;right:auto;width:2rem;height:1.6rem;font-size:1.1rem;transform:translateX(-50%) rotate(90deg)}
+  #vod .fleche.g{top:-1.35rem}#vod .fleche.d{top:auto;bottom:-1.35rem}
+}
+
+/* ===== Formulaires ===== */
+form{display:grid;gap:.8rem;max-width:36rem}
+label{display:grid;gap:.25rem;font:600 .95rem var(--cond);letter-spacing:.08em;text-transform:uppercase}
+input,textarea,select{width:100%;padding:.6rem .7rem;font:1rem var(--corps);color:var(--encre);background:var(--papier);
+  border:1px solid var(--encre);border-radius:0}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--ocre2);outline-offset:0}
+#retour{min-height:1.5rem;margin:0;font-weight:600}
+
+/* ===== Panneau QUIZZ (colonne droite) ===== */
+.chip-quizz{border-width:2px}
+.qz-joueur{display:flex;align-items:center;gap:.6rem;padding-bottom:.7rem;border-bottom:1px dashed var(--ligne)}
+.qz-joueur>div{flex:1;min-width:0;line-height:1.2}
+.qz-joueur strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 1.1rem var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.qz-joueur small{display:block;font:400 .8rem var(--mono);color:var(--encre2)}
+.en-ligne-pt::before{content:"";display:inline-block;width:.5rem;height:.5rem;margin-right:.35rem;background:var(--bon);vertical-align:.05rem}
+.mini{padding:.25rem .6rem;border:1px solid var(--encre);background:var(--papier);font:600 .85rem var(--cond);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.mini:hover{background:var(--encre);color:var(--creme)}
+.qz-xp{padding:.7rem 0 .2rem}
+.qz-xp-txt{display:flex;justify-content:space-between;gap:.5rem;font:400 .8rem var(--mono)}
+.qz-xp-barre{height:.7rem;margin-top:.3rem;border:1px solid var(--encre);background:var(--creme2);padding:1px}
+.qz-xp-barre>i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--encre) 0 6px,transparent 6px 8px);transition:width .6s}
+.qz-icones{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem;margin:.8rem 0}
+.qz-ico{display:grid;justify-items:center;gap:.2rem;padding:.55rem .2rem .4rem;border:1px solid var(--encre);background:var(--papier);
+  font:600 .78rem var(--cond);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.qz-ico svg{width:1.35rem;height:1.35rem}
+.qz-ico:hover,.qz-ico[aria-pressed="true"]{background:var(--encre);color:var(--creme)}
+.qz-sous{margin:.4rem 0 .45rem;font:600 .78rem var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--encre2)}
+.quizz-cartes{display:grid;gap:.45rem}
+.quizz-carte{position:relative;display:grid;grid-template-columns:4.6rem minmax(0,1fr);align-items:center;gap:.7rem;width:100%;padding:.3rem;margin:0;
+  border:1px solid var(--encre);background:var(--papier);color:var(--encre);font:inherit;text-align:left;cursor:pointer;transition:background .15s}
+.quizz-carte[hidden]{display:none!important}
+button.quizz-carte:hover,button.quizz-carte:focus-visible,button.quizz-carte.choisi{background:var(--ocre)}
+button.quizz-carte.choisi::after{content:"";position:absolute;right:.6rem;top:50%;width:.55rem;height:.55rem;background:var(--encre);transform:translateY(-50%)}
+.quizz-carte img{width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid var(--encre);filter:sepia(.25)}
+.quizz-carte span{display:block;font:700 1rem/1.15 var(--cond);letter-spacing:.06em;text-transform:uppercase;padding-right:1.2rem}
+.quizz-carte span small{display:block;margin-top:.15rem;font:400 .75rem var(--mono);letter-spacing:.04em;text-transform:none;color:var(--encre2)}
+div.quizz-carte.griser{cursor:not-allowed;opacity:.5;filter:grayscale(.8);border-style:dashed}
+.qz-ecran{margin-top:.9rem;border:1px solid var(--encre);background:var(--creme)}
+.qz-ecran-titre{margin:0;padding:.3rem .7rem;border-bottom:1px solid var(--encre);background:var(--creme2);font:600 .95rem var(--cond);letter-spacing:.14em;text-transform:uppercase}
+#qzCorps{padding:.8rem .8rem 1rem}
+#qzCorps>p:first-child{margin-top:0}
+#qzCorps form{max-width:none}
+.qz-barre{height:.4rem;border:1px solid var(--encre);background:var(--papier);margin:.2rem 0 .9rem}
+.qz-barre>i{display:block;height:100%;width:100%;background:var(--encre);transition:width 1s linear}
+.qz-barre.urgent>i{background:var(--mauvais)}
+.qz-meta{display:flex;justify-content:space-between;gap:.5rem;font:400 .8rem var(--mono);margin-bottom:.3rem}
+.qz-question{font:600 1.08rem/1.4 var(--corps);margin:.1rem 0 .9rem}
+.qz-resultat{margin:.6rem 0;padding:.7rem .8rem;border:1px solid var(--encre);border-left-width:6px;background:var(--papier)}
+.qz-resultat.bon{border-left-color:var(--bon)}
+.qz-resultat.mauvais{border-left-color:var(--mauvais)}
+.qz-resultat>strong{display:block;margin-bottom:.2rem;font:700 1rem var(--cond);letter-spacing:.1em;text-transform:uppercase}
+.qz-resultat.bon>strong{color:var(--bon)}
+.qz-resultat.mauvais>strong{color:var(--mauvais)}
+.qz-resultat p{margin:.3rem 0 0;font-size:.95rem}
+.qz-score{font:700 1.5rem var(--cond);letter-spacing:.08em;text-align:center;margin:.3rem 0 .7rem}
+.qz-classement{width:100%;border-collapse:collapse;margin-top:.4rem;font-size:.92rem}
+.qz-classement td,.qz-classement th{padding:.3rem .45rem;border-bottom:1px dashed var(--ligne);text-align:left}
+.qz-classement th{font:600 .8rem var(--mono);letter-spacing:.1em}
+.qz-classement td:last-child,.qz-classement th:last-child{text-align:right}
+.qz-classement tr.moi td{background:var(--ocre);font-weight:600}
+.qz-classement td:nth-child(2){word-break:break-word}
+.qz-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
+.qz-erreur{color:var(--mauvais);min-height:1.1rem;margin:.3rem 0;font-size:.92rem;font-weight:500}
+.qz-petit{font-size:.86rem;opacity:.85;margin-top:.5rem}
+.qz-onglets-compte{display:flex;gap:.4rem;margin-bottom:.8rem}
+.qz-onglets-compte button{flex:1;padding:.45rem;border:1px solid var(--encre);background:var(--papier);color:var(--encre);
+  font:600 .9rem var(--cond);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.qz-onglets-compte button.actif{background:var(--ocre)}
+.qz-regles{margin:0;padding-left:1.1rem;font-size:.93rem}
+.qz-regles li{margin:.2rem 0}
+
+/* ===== Discord ===== */
+.dc-cadre{position:relative;height:30rem;border:1px solid var(--encre);background:var(--encre)}
+.dc-cadre iframe{display:block;width:100%;height:100%;border:0}
+.dc-vide{height:auto;padding:1rem;background:var(--papier)}
+.dc-vide p{margin:.2rem 0 .6rem}
+.dc-info{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin:0 0 .7rem;font:400 .85rem var(--mono)}
+
+/* ===== Pied de page : anecdotes + signature 16 bits (conservés) ===== */
+footer{margin-top:2rem;padding:0 0 2rem;text-align:center}
+.bulle{position:relative;max-width:34rem;margin:0 auto 1.6rem;padding:.9rem 1.1rem;text-align:left;cursor:pointer;
+  background:var(--papier);border:1px solid var(--encre);box-shadow:4px 4px 0 rgba(74,70,54,.16)}
+.bulle::after{content:"";position:absolute;left:50%;bottom:-.6rem;width:1.1rem;height:1.1rem;background:var(--papier);
+  border:solid var(--encre);border-width:0 1px 1px 0;transform:translateX(-50%) rotate(45deg)}
+.bulle strong{display:block;margin-bottom:.2rem;font:700 .95rem var(--cond);letter-spacing:.14em;text-transform:uppercase}
+.bulle p{margin:0;line-height:1.45}
+.bulle small{display:block;margin-top:.4rem;opacity:.75;font-family:var(--mono)}
+.trivia{display:flex;align-items:flex-end;justify-content:center;gap:1rem}
+.trivia .bulle{flex:1 1 auto;margin:0 0 1.6rem}
+.trivia img{flex:none;height:9rem;width:auto;opacity:.3;pointer-events:none;margin-bottom:1.6rem;filter:sepia(1) saturate(.5);mix-blend-mode:multiply;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 45%);mask-image:linear-gradient(90deg,transparent,#000 45%)}
+.pixel{margin:0;font:.8rem/1.6 var(--pixel);color:var(--encre);text-shadow:2px 2px 0 var(--ocre)}
+.admin{display:inline-block;margin-top:1rem;padding:.3rem;font:inherit;font-size:.8rem;color:var(--encre2);background:none;border:0;cursor:pointer}
+
+/* ===== Dialog Admin (conservé) ===== */
+dialog{width:min(40rem,calc(100% - 1.5rem));max-height:85vh;padding:1.2rem;color:var(--encre);background:var(--papier);
+  border:2px solid var(--encre);border-radius:0;box-shadow:6px 6px 0 rgba(74,70,54,.3)}
+dialog::backdrop{background:rgba(40,37,28,.6)}
+.admin-tete{display:flex;justify-content:space-between;align-items:center;margin:-1.2rem -1.2rem 1rem;padding:.5rem 1rem;
+  background:var(--encre);color:var(--creme);font:600 1.1rem var(--cond);letter-spacing:.14em;text-transform:uppercase}
+.admin-tete button{width:2.2rem;height:2.2rem;border:0;background:none;color:var(--creme);font-size:1.4rem;cursor:pointer}
+.onglets{display:flex;gap:.25rem;margin:0 0 1rem;padding:0;list-style:none;border-bottom:1px solid var(--encre)}
+.onglets li{padding:.45rem .8rem;font:600 .98rem var(--cond);letter-spacing:.1em;text-transform:uppercase}
+.onglets .off{opacity:.45;cursor:not-allowed}
+.onglets .actif{background:var(--ocre)}
+.note{margin:.7rem 0;padding:.8rem;background:var(--creme);border:1px solid var(--encre)}
+.note small{font-family:var(--mono)}.note p{margin:.4rem 0;white-space:pre-wrap}
+.note button{padding:.3rem .7rem;font:inherit;color:var(--encre);background:var(--papier);border:1px solid var(--encre);cursor:pointer}
+
+/* ===== Bouton thème + accès admin (en-tête) ===== */
+.haut-gauche{justify-self:start;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;min-width:0}
+.theme-btn{padding:.35rem .6rem;border:1px solid var(--encre);background:var(--papier);color:var(--encre);
+  font:400 .8rem var(--mono);letter-spacing:.1em;cursor:pointer}
+.theme-btn:hover{background:var(--encre);color:var(--creme)}
+.btn-admin{padding:.35rem .6rem;border:1px dashed var(--encre);background:var(--ocre);color:#2a2619;font:600 .85rem var(--cond);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.admin{position:absolute;right:.4rem;bottom:.4rem;width:1.1rem;height:1.1rem;padding:0;margin:0;border:0;background:none;color:transparent;opacity:.25;cursor:default}
+.admin:focus-visible{color:var(--encre);opacity:1}
+footer .wrap{position:relative}
+
+/* ===== Mode sombre : version nuit NieR (le clair reste le défaut) ===== */
+:root[data-theme="sombre"]{
+  --creme:#1d1a14; --creme2:#29251d; --papier:#2e2920; --encre:#e3dcc4; --encre2:#bdb397;
+  --ocre:#e6c35c; --ocre2:#c9a640; --quad:rgba(227,220,196,.045); --ligne:rgba(227,220,196,.28);
+  --bon:#a5c98a; --mauvais:#e8957f; color-scheme:dark}
+[data-theme="sombre"] .haut{background:rgba(41,37,29,.75)}
+[data-theme="sombre"] .nav-onglets{background:rgba(29,26,20,.94)}
+[data-theme="sombre"] .chip{background:rgba(46,41,32,.88);box-shadow:4px 4px 0 rgba(0,0,0,.35)}
+[data-theme="sombre"] .chip-btn:hover{background:#cfc6aa}
+[data-theme="sombre"] .haut>img.fond,[data-theme="sombre"] .haut .elfe,[data-theme="sombre"] .trivia img{mix-blend-mode:normal;opacity:.12}
+[data-theme="sombre"] .hors p,[data-theme="sombre"] .soutien summary{color:#e3dcc4}
+[data-theme="sombre"] .avatar{color:var(--creme);background:var(--encre)}
+[data-theme="sombre"] .carte img,[data-theme="sombre"] .quizz-carte img{filter:none}
+/* texte toujours foncé sur l'ocre, dans les deux thèmes */
+[data-theme="sombre"] :is(.soutien summary:hover,.soutien[open] summary,.nav-onglets [aria-current="true"],.nav-onglets button[aria-expanded="true"],
+  .carte:hover,.carte:focus-visible,.chaine[aria-pressed="true"],button.quizz-carte:hover,button.quizz-carte:focus-visible,button.quizz-carte.choisi,
+  .qz-onglets-compte button.actif,.bouton:hover,.qz-classement tr.moi td,.onglets .actif,.barre-bas a[aria-current="true"],.badge:hover .avatar){color:#2a2619}
+[data-theme="sombre"] button.quizz-carte.choisi span small,[data-theme="sombre"] button.quizz-carte:hover span small{color:#3d3826}
+[data-theme="sombre"] button.quizz-carte.choisi::after{background:#2a2619}
+[data-theme="sombre"] .pixel{text-shadow:2px 2px 0 #6b5a24}
+
+/* ===== Barre d'onglets du bas (mobile) ===== */
+.barre-bas{display:none}
+
+/* ===== Mobile / tablette : modules empilés et repliables ===== */
+@media(max-width:61.99rem){
+  :root{--barre-bas:calc(3.9rem + env(safe-area-inset-bottom,0px))}
+  html{scroll-padding-top:.8rem;scroll-padding-bottom:var(--barre-bas)}
+  .wrap{width:calc(100% - 2rem)}
+  .nav-onglets{display:none}
+  .haut-grille{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"badge camion" "logo logo";gap:.5rem .8rem;padding-top:.6rem}
+  .haut-gauche{grid-area:badge}.camion{grid-area:camion}.logo{grid-area:logo;justify-self:center}
+  .page,.col-main,.col-side,.duo{display:flex;flex-direction:column;align-items:stretch;gap:1.3rem}
+  .col-main,.col-side,.duo{display:contents}
+  #videos{order:1}#live{order:2}#recommandations{order:3}#vod{order:4}#quizz{order:5}#communaute{order:6}
+  .chip-btn{cursor:pointer}
+  .chip-btn:hover{background:#5d5845}
+  .chip-fleche{display:block}
+  .chip-btn .chip-titre{font-size:1rem}
+  /* Quizz du jour : modes en carrousel horizontal */
+  .quizz-cartes{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:.6rem;padding-bottom:.5rem}
+  .quizz-carte{flex:0 0 min(78%,15rem);grid-template-columns:1fr;scroll-snap-align:start;gap:.4rem}
+  .quizz-carte span{padding:0 .3rem .3rem}
+  .dc-cadre{height:26rem}
+  .chaines{display:grid;grid-template-columns:1fr 1fr}
+  .chaine{justify-content:center;padding:.35rem .3rem;font-size:.78rem;letter-spacing:0;gap:.3rem}
+  .barre-bas{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);
+    padding-bottom:env(safe-area-inset-bottom,0px);background:var(--encre);border-top:3px solid var(--ocre)}
+  .barre-bas a{display:grid;justify-items:center;align-content:center;gap:.15rem;min-height:3.9rem;padding:.3rem .1rem;
+    color:var(--creme);text-decoration:none;font:600 .74rem var(--cond);letter-spacing:.06em;text-transform:uppercase}
+  .barre-bas svg{width:1.3rem;height:1.3rem}
+  .barre-bas a[aria-current="true"]{background:var(--ocre);color:var(--encre)}
+  .barre-bas a:focus-visible{outline-offset:-3px}
+}
+@media(max-width:34rem){
+  .trivia img{height:6.5rem}
+  .barre{padding-right:1rem}.barre img{display:none}
+  .chip-corps{padding:.8rem}
+  .logo h1{letter-spacing:.12em}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}*{transition:none!important}}
+
+/* ===== COMPENDIUM, BOUTIQUE, PROFILS (scripts SQL 30a-30c ; module coupé par défaut) ===== */
+.pf-img{image-rendering:auto;object-fit:contain}
+.pf-img.pixel{image-rendering:pixelated;image-rendering:crisp-edges}
+.avatar.a-img{padding:0;background:var(--papier);overflow:hidden}
+.avatar.a-img img{width:100%;height:100%}
+.qz-classement .pf-cell{display:flex;align-items:center;gap:.45rem;min-width:0}
+.qz-classement .pf-av{flex:none;width:32px;height:32px;border:1px solid var(--encre);background:var(--papier)}
+.pf-badges{display:inline-flex;gap:2px;margin-left:.25rem;vertical-align:middle}
+.pf-badges img{width:16px;height:16px}
+.cp-tete{display:flex;align-items:center;gap:.7rem;padding-bottom:.7rem;border-bottom:1px dashed var(--ligne)}
+.cp-tete .cp-av{flex:none;width:3rem;height:3rem;display:grid;place-items:center;border:1px solid var(--encre);background:var(--encre);color:var(--ocre);font:700 1.4rem var(--cond)}
+.cp-tete .cp-av img{width:100%;height:100%}
+.cp-tete strong{display:block;font:700 1.05rem var(--cond);letter-spacing:.06em;text-transform:uppercase}
+.cp-gils{margin-left:auto;font:600 .95rem var(--mono);white-space:nowrap}
+.cp-onglets,.cp-sous{display:flex;flex-wrap:wrap;gap:.3rem;margin:.8rem 0;padding:0;list-style:none}
+.cp-onglets button,.cp-sous button{padding:.35rem .7rem;border:1px solid var(--encre);background:var(--papier);cursor:pointer;
+  font:600 .85rem var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.cp-onglets button[aria-selected="true"],.cp-sous button[aria-selected="true"]{background:var(--ocre);color:#2a2619}
+.cp-sous button[aria-disabled="true"]{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+.cp-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.2rem,1fr));gap:.55rem}
+.cp-carte{position:relative;display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:0;padding:.55rem .4rem;
+  border:1px solid var(--encre);background:var(--papier);text-align:center;font:inherit;color:inherit}
+button.cp-carte{cursor:pointer}
+button.cp-carte:hover,button.cp-carte:focus-visible,.cp-carte.choisi{background:var(--ocre);color:#2a2619}
+.cp-carte img{width:64px;height:64px}
+.cp-carte b{font:600 .88rem/1.15 var(--cond);letter-spacing:.04em;overflow-wrap:anywhere}
+.cp-carte small{font:400 .75rem var(--mono)}
+.cp-carte .cp-tag{position:absolute;top:.25rem;right:.25rem;padding:0 .3rem;background:var(--encre);color:var(--creme);font:400 .65rem var(--mono)}
+.cp-vide{padding:1rem;border:1px dashed var(--ligne);text-align:center;color:var(--encre2)}
+.cp-vide b{display:block;margin-bottom:.3rem;color:var(--encre);font:600 1rem var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.cp-fiche{margin-top:.8rem;padding:.8rem;border:1px solid var(--encre);background:var(--papier);display:grid;grid-template-columns:auto 1fr;gap:.8rem;align-items:start}
+.cp-fiche img{width:96px;height:96px;border:1px solid var(--ligne)}
+.cp-fiche p{margin:.2rem 0}
+.cp-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+.cp-msg{min-height:1.3em;margin:.5rem 0 0;font:400 .9rem var(--mono)}
+.cp-msg.err{color:var(--mauvais)}
+.cp-carte-profil{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.8rem;border:2px solid var(--encre);background:var(--papier)}
+.cp-carte-profil .cp-rangee{display:flex;gap:4px;min-height:32px}
+.cp-carte-profil .cp-rangee img{width:32px;height:32px}
+.cp-carte-profil .cp-grand{width:96px;height:96px;display:grid;place-items:center;border:1px solid var(--encre);background:var(--encre);color:var(--ocre);font:700 2.6rem var(--cond)}
+.cp-carte-profil .cp-grand img{width:100%;height:100%}
+.cp-journal{margin:.6rem 0 0;padding:0;list-style:none;font:400 .85rem var(--mono)}
+.cp-journal li{display:flex;justify-content:space-between;gap:.6rem;padding:.25rem 0;border-bottom:1px dotted var(--ligne)}
+/* admin « Médias et boutique » */
+.md-depot{display:grid;place-items:center;gap:.4rem;min-height:7rem;padding:1rem;border:2px dashed var(--encre);background:var(--papier);text-align:center;cursor:pointer}
+.md-depot.survol{background:var(--ocre);color:#2a2619}
+.md-fiche{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.5rem .8rem;margin-top:.8rem}
+.md-fiche label{display:flex;flex-direction:column;gap:.2rem;font-size:.85rem}
+.md-fiche .md-case{flex-direction:row;align-items:center;gap:.5rem}
+.md-fiche .md-case input{width:auto}
+.md-attente{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+.md-attente figure{margin:0;padding:.3rem;border:1px solid var(--encre);background:var(--papier);font:400 .7rem var(--mono);text-align:center;max-width:9rem}
+.md-attente img{width:64px;height:64px;margin:auto}
+.md-apercus{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.6rem;margin-top:.8rem}
+.md-apercu{--creme:#d8d2bd;--papier:#e6e1ce;--encre:#4a4636;--encre2:#5c5744;--ligne:rgba(74,70,54,.3);padding:.6rem;border:1px solid var(--encre);background:var(--creme);color:var(--encre)}
+.md-apercu.sombre{--creme:#1d1a14;--papier:#2e2920;--encre:#e3dcc4;--encre2:#bdb397;--ligne:rgba(227,220,196,.28)}
+.md-apercu table{width:100%;border-collapse:collapse;font-size:.85rem}
+.md-apercu td{padding:.2rem;border-bottom:1px solid var(--ligne)}
+.md-liste .note{display:grid;grid-template-columns:auto 1fr;gap:.6rem;align-items:center}
+.md-liste .note img{width:40px;height:40px;border:1px solid var(--ligne)}
+.md-liste .md-btns{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
+#listeMediasAdmin input:not([type=checkbox]):not([type=file]),#listeMediasAdmin select,#listeMediasAdmin textarea{max-width:100%}
+@media(max-width:61.99rem){ #compendium{order:5} }
+/* ===== MINI-JEUX ET INTERRUPTEURS FERMÉ / TEST / OUVERT (script SQL 31) ===== */
+.mode-test{margin:0 0 .7rem;padding:.35rem .6rem;border:1px solid var(--encre);color:#2a2619;font:700 .8rem var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  background:repeating-linear-gradient(135deg,var(--ocre) 0 10px,#f0d885 10px 20px)}
+.mj-carte{align-items:flex-start;text-align:left}
+.mj-carte p{margin:0;font-size:.82rem;color:var(--encre2)}
+button.mj-carte:hover p,button.mj-carte:focus-visible p{color:#3d3826}
+.mj-carte[aria-disabled="true"]{opacity:.5;cursor:not-allowed}
+.mj-tete{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem}
+.mj-tete b{font:700 1rem var(--cond);letter-spacing:.06em;text-transform:uppercase}
+.mj-chrono{font:600 .95rem var(--mono)}
+.mj-image{margin:.4rem 0;border:1px solid var(--encre);background:var(--papier)}
+.mj-image img{max-height:16rem;width:100%;object-fit:contain}
+.mj-meta{margin:.3rem 0;font:400 .85rem var(--mono);color:var(--encre2)}
+.mj-question{margin:.4rem 0 .7rem;font-weight:600}
+.mj-choix{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.mj-choix button{padding:.55rem .6rem;border:1px solid var(--encre);background:var(--papier);cursor:pointer;text-align:left;font:600 .95rem var(--cond);letter-spacing:.03em}
+.mj-choix button:hover,.mj-choix button:focus-visible{background:var(--ocre);color:#2a2619}
+.mj-verdict{margin:.2rem 0 .5rem;font:600 .9rem var(--mono)}
+.mj-verdict.bon{color:var(--bon)}.mj-verdict.mauvais{color:var(--mauvais)}
+.mj-saisie{display:flex;gap:.5rem;max-width:none}
+.mj-saisie input{flex:1;min-width:0}
+.et3{display:inline-flex;flex-wrap:wrap;margin-top:.45rem;border:1px solid var(--encre)}
+.et3 label{display:flex;align-items:center;gap:.3rem;margin:0;padding:.3rem .65rem;cursor:pointer;font:600 .8rem var(--cond);letter-spacing:.08em;text-transform:uppercase;background:var(--papier)}
+.et3 label+label{border-left:1px solid var(--encre)}
+.et3 input{position:absolute;opacity:0;width:1px;height:1px}
+.et3 label:has(input:checked){color:#2a2619}
+.et3 label.et-ferme:has(input:checked){background:var(--encre2);color:var(--creme)}
+.et3 label.et-test:has(input:checked){background:var(--ocre)}
+.et3 label.et-ouvert:has(input:checked){background:#9fbf87}
+.et3 label:has(input:focus-visible){outline:2px solid var(--encre);outline-offset:-3px}
+.et3 label:has(input:disabled){opacity:.45;cursor:not-allowed}
+.et-ligne{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem}
+.et-ligne b{font:600 1rem var(--cond);letter-spacing:.04em}
+@media(max-width:61.99rem){ #minijeux{order:5} }
+.onglets{flex-wrap:wrap}   /* 5 onglets admin : retour à la ligne sur mobile (les derniers sortaient de l'écran) */
+@media(max-width:34rem){ .mj-choix{grid-template-columns:1fr} }
+/* ===== ICÔNE DES GILS (médaille, embarquée une seule fois : <template id="tplGil">) ===== */
+body:not([data-page]) #compendium .cp-onglets,body:not([data-page]) #compendium #cpCorps{display:none}   /* accueil : raccourcis seulement (pages boutique.html / mini-jeux.html) */
+.raccourcis{margin:.7rem 0 0}.raccourcis a{text-decoration:none}
+.ed-avap{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;margin:.6rem 0}.ed-avap figure{margin:0;text-align:center;font:400 .75rem var(--mono)}
+.ed-avap img{width:96px;height:96px;object-fit:contain;border:1px solid var(--encre);background:var(--papier)}
+.ph{display:inline-grid;place-items:center;flex:none;border:1px dashed var(--encre);background:var(--papier);color:var(--encre2);font:700 1.4em var(--cond)}
+img.gil{display:inline-block;width:1.15em!important;height:1.15em!important;margin:0 .08em;padding:0;border:0!important;vertical-align:-.24em;object-fit:contain;filter:drop-shadow(0 0 1px rgba(0,0,0,.35))}
+.cp-tag img.gil{width:1.1em!important;height:1.1em!important;vertical-align:-.28em}   /* !important : .cp-fiche img / .cp-carte img fixent 96 et 64 px */
+@media(max-width:34rem){ .cp-grille{grid-template-columns:repeat(auto-fill,minmax(6.3rem,1fr))} .cp-fiche{grid-template-columns:1fr} .cp-gils{margin-left:0} .cp-tete{flex-wrap:wrap} }
+</style>
+<style>/* ===== PAGES mini-jeux.html et boutique.html (le style NieR de base vient du gabarit de l'accueil) ===== */
+body{padding-bottom:0}
+.pg-haut{position:sticky;top:0;z-index:30;border-bottom:1px solid var(--encre);background:rgba(205,198,174,.94)}
+[data-theme="sombre"] .pg-haut{background:rgba(41,37,29,.95)}
+.pg-haut .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.55rem 0}
+.pg-haut h1{margin:0;font:700 clamp(1.2rem,3.4vw,1.8rem)/1 var(--cond);letter-spacing:.14em;text-transform:uppercase}
+.pg-nav{display:flex;flex-wrap:wrap;gap:.3rem;margin:0;padding:0;list-style:none}
+.pg-nav a{display:block;padding:.3rem .65rem;border:1px solid var(--encre);background:var(--papier);text-decoration:none;font:600 .82rem var(--cond);letter-spacing:.1em;text-transform:uppercase}
+.pg-nav a[aria-current="page"]{background:var(--ocre);color:#2a2619}
+.pg-joueur{display:flex;align-items:center;gap:.5rem;margin-left:auto;font:600 .95rem var(--cond)}
+.pg-joueur .avatar{width:2rem;height:2rem}
+.pg-main{display:grid;gap:1.2rem;padding:1.2rem 0 2rem}
+.pg-deux{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start}
+.pg-main .chip{margin-top:10px}
+.pg-intro{margin:.2rem 0 1rem;color:var(--encre2)}
+/* placeholders dessinés en code : silhouette, couleur de rareté, « ? » */
+.ph{position:relative;display:inline-grid;place-items:center;flex:none;overflow:hidden;border:1px solid var(--encre);background:var(--papier);color:var(--encre2)}
+.ph i{position:absolute;inset:18% 22% 0;background:radial-gradient(circle at 50% 22%,var(--encre2) 0 17%,transparent 18%),radial-gradient(ellipse at 50% 100%,var(--encre2) 0 46%,transparent 47%);opacity:.35}
+.ph-badge{border-radius:50%}
+.ph-badge i{inset:14%;border-radius:50%;background:radial-gradient(circle,transparent 48%,var(--encre2) 50% 62%,transparent 64%)}
+.ph b{position:relative;font:700 1.6em var(--cond);color:var(--encre)}
+.ph-rare{box-shadow:inset 0 0 0 3px #6f8fb3}.ph-epique{box-shadow:inset 0 0 0 3px #9a6fb3}.ph-legendaire{box-shadow:inset 0 0 0 3px var(--ocre)}
+/* boutique */
+.bq-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.7rem}
+.bq-carte{position:relative;display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.7rem .5rem;border:1px solid var(--encre);background:var(--papier);cursor:pointer;font:inherit;color:inherit;text-align:center}
+.bq-carte:hover,.bq-carte:focus-visible,.bq-carte.choisi{background:var(--ocre);color:#2a2619}
+.bq-carte b{font:600 .95rem/1.15 var(--cond);letter-spacing:.04em;overflow-wrap:anywhere}
+.bq-carte small{font:400 .78rem var(--mono)}
+.bq-carte .cp-tag{position:absolute;top:.3rem;right:.3rem}
+.bq-fiche{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:start;margin-top:1rem;padding:1rem;border:2px solid var(--encre);background:var(--papier)}
+.cp-zone-cible{transition:background .3s}
+.brille{animation:brille 1.1s ease-out}
+@keyframes brille{0%{box-shadow:0 0 0 0 rgba(230,195,92,.0)}25%{box-shadow:0 0 0 6px rgba(230,195,92,.9),0 0 28px 8px rgba(230,195,92,.75)}100%{box-shadow:0 0 0 0 rgba(230,195,92,0)}}
+.vol{position:fixed;z-index:200;pointer-events:none;filter:drop-shadow(0 0 10px rgba(230,195,92,.9))}
+.etincelle{position:fixed;z-index:201;width:8px;height:8px;pointer-events:none;background:var(--ocre);transform:rotate(45deg);box-shadow:0 0 8px var(--ocre)}
+/* mini-jeux */
+.mj-grand{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:.8rem}
+.mj-fiche{display:flex;flex-direction:column;gap:.4rem;padding:.9rem;border:1px solid var(--encre);background:var(--papier)}
+.mj-fiche h3{margin:0;font:700 1.15rem var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.mj-fiche ul{margin:.2rem 0 .4rem;padding-left:1.1rem;font-size:.92rem}
+.mj-fiche .cp-actions{margin-top:auto}
+#mjScene .mj-image img{max-height:26rem}
+#mjScene .mj-choix button{padding:.8rem .8rem;font-size:1.08rem}
+@media(max-width:61.99rem){ .pg-deux{grid-template-columns:1fr} .pg-joueur{margin-left:0;width:100%} .pg-haut{position:static} }   /* mobile : le bandeau ne masque pas le jeu */
+@media(max-width:34rem){ .bq-grille{grid-template-columns:repeat(auto-fill,minmax(7.5rem,1fr))} .bq-fiche{grid-template-columns:1fr} }
+@media(prefers-reduced-motion:reduce){ .brille{animation:none;outline:3px solid var(--ocre)} }
+</style>
+</head>
+<body data-page="mini-jeux">
+<header class="pg-haut"><div class="wrap">
+  <h1>Mini-jeux</h1>
+  <nav aria-label="Pages du site"><ul class="pg-nav"><li><a href="index.html">Accueil</a></li><li><a href="mini-jeux.html" aria-current="page">Mini-jeux</a></li><li><a href="boutique.html">Boutique et Compendium</a></li></ul></nav>
+  <div class="pg-joueur" id="pgJoueur"><span class="avatar">?</span><span>…</span></div>
+  <button type="button" class="theme-btn" id="themeBtn" aria-pressed="false">◐ Sombre</button>
+</div></header>
+<main class="wrap pg-main">
+  <p class="pg-intro">Un défi par jour et par jeu : les points vont au classement, les Gils dans ton Compendium.</p>
+  <section class="chip" id="mjScene" aria-labelledby="mjTitre" hidden>
+    <h2><span class="chip-btn" style="cursor:default"><span class="puce">JEU</span><span class="chip-titre" id="mjTitre">Mini-jeu</span></span></h2>
+    <div class="chip-corps" id="mjSceneCorps" aria-live="polite"></div>
+  </section>
+  <section class="chip" aria-labelledby="t-liste">
+    <h2><span class="chip-btn" style="cursor:default" id="t-liste"><span class="puce">JEUX</span><span class="chip-titre">Tous les mini-jeux et leurs règles</span></span></h2>
+    <div class="chip-corps" id="mjListe"><p class="qz-petit">Chargement…</p></div>
+  </section>
+</main>
+<template id="tplGil"><img class="gil" src="data:image/webp;base64,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" alt="Gils" width="20" height="20" decoding="async"></template>
+<script>/* =====================================================================
+   OUTILS COMMUNS DES PAGES mini-jeux.html et boutique.html
+   (intégrés à la construction par build_pages.py ; l'adresse et la clé
+   PUBLIQUE de Supabase sont lues dans le gabarit de l'accueil)
+   ===================================================================== */
+const CONFIG = { supabaseUrl: "https://zdnvvokecziiwdcrmzwv.supabase.co", supabaseKey: "sb_publishable_dDmIBev0F6b6g_VRq7_5iA_eEZNUe3g", domaineAdmin: "@chapeauoptique.fr" };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nb = n => Number(n || 0).toLocaleString("fr-FR");
+function stocker(cle, val) { try { if (val === null) localStorage.removeItem(cle); else localStorage.setItem(cle, val); } catch { } }
+function lireStock(cle) { try { return localStorage.getItem(cle) || ""; } catch { return ""; } }
+function qzToken() { return lireStock("qzToken"); }
+function qzPseudoLocal() { return lireStock("qzPseudo"); }
+// session admin : même onglet que l'accueil (sessionStorage suit les liens)
+let jeton = (() => { try { return sessionStorage.getItem("jeton"); } catch { return null; } })();
+const sb = (chemin, opts = {}) => fetch(CONFIG.supabaseUrl + chemin, { ...opts, headers: { apikey: CONFIG.supabaseKey,
+  ...(jeton ? { Authorization: "Bearer " + jeton } : {}), "Content-Type": "application/json", ...opts.headers } });
+async function qzRpc(nom, corps) {
+  const r = await fetch(CONFIG.supabaseUrl + "/rest/v1/rpc/" + nom, { method: "POST",
+    headers: { apikey: CONFIG.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify(corps || {}) });
+  let d = null; try { d = await r.json(); } catch { }
+  if (!r.ok) { const e = new Error((d && d.message) || "http_" + r.status); e.code = d && d.code; e.status = r.status; throw e; }
+  return d;
+}
+// admin connecté : l'appel porte aussi son jeton (mode Test, script 31) ; le serveur décide
+async function rpcJoueur(nom, corps) {
+  if (jeton) {
+    const r = await sb("/rest/v1/rpc/" + nom, { method: "POST", body: JSON.stringify(corps || {}) });
+    if (r.status !== 401 && r.status !== 403) {
+      let d = null; try { d = await r.json(); } catch { }
+      if (!r.ok) { const e = new Error((d && d.message) || "http_" + r.status); e.code = d && d.code; e.status = r.status; throw e; }
+      return d;
+    }
+    jeton = null; try { sessionStorage.removeItem("jeton"); } catch { }
+  }
+  return qzRpc(nom, corps);
+}
+function gilIcone() { const t = document.getElementById("tplGil"); return t ? t.innerHTML.trim() : "Gils"; }
+
+// Images : seulement le bucket « medias » du projet ou /medias/ ; sinon placeholder dessiné en code
+const RX_IMG = /^(https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/medias\/|\/?medias\/)[a-z0-9_\/.-]+\.(webp|png|gif|jpe?g)$/i;
+const imgOk = u => typeof u === "string" && RX_IMG.test(u);
+const RARETE = { commun: "Commun", rare: "Rare", epique: "Épique", legendaire: "Légendaire" };
+function visuel(a, taille, cls = "") {
+  if (a && imgOk(a.fichier)) return `<img class="pf-img${a.pixel !== false ? " pixel" : ""} ${cls}" src="${esc(a.fichier)}" alt="${esc(a.nom || "")}" width="${taille}" height="${taille}" loading="lazy">`;
+  const r = (a && a.rarete) || "commun", t = (a && a.type) === "badge" ? "badge" : "avatar";
+  return `<span class="ph ph-${t} ph-${r} ${cls}" style="width:${taille}px;height:${taille}px" role="img" aria-label="${esc((a && a.nom) || "Image à venir")}"><i></i><b>?</b></span>`;
+}
+
+// Thème clair / sombre (même clé que l'accueil)
+(function () {
+  const b = $("themeBtn"); if (!b) return;
+  const poser = s => { if (s) document.documentElement.dataset.theme = "sombre"; else delete document.documentElement.dataset.theme;
+    b.textContent = s ? "◐ Clair" : "◐ Sombre"; b.setAttribute("aria-pressed", String(s)); };
+  poser(document.documentElement.dataset.theme === "sombre");
+  b.onclick = () => { const s = document.documentElement.dataset.theme !== "sombre"; poser(s); stocker("theme", s ? "sombre" : null); };
+})();
+
+// Bandeau joueur : avatar (ou initiale), pseudo, Gils ; vérifie la session comme l'accueil
+const JOUEUR = { pseudo: "", profil: null, valide: false };
+async function chargerJoueur() {
+  const t = qzToken(); JOUEUR.valide = false; JOUEUR.profil = null;
+  if (t) {
+    try { const p = await qzRpc("quizz_pseudo_de", { p_token: t }); if (p === null) { stocker("qzToken", null); stocker("qzPseudo", null); } else { JOUEUR.valide = true; JOUEUR.pseudo = p || qzPseudoLocal(); } }
+    catch { JOUEUR.valide = true; JOUEUR.pseudo = qzPseudoLocal(); }
+    if (JOUEUR.valide) { try { JOUEUR.profil = await rpcJoueur("profil_moi", { p_token: qzToken() }); } catch { } }
+  }
+  dessinerJoueur();
+}
+function dessinerJoueur() {
+  const z = $("pgJoueur"); if (!z) return;
+  if (!JOUEUR.valide) { z.innerHTML = `<span class="avatar">?</span><span>Invité · <a href="index.html#quizz">se connecter</a></span>`; return; }
+  const p = JOUEUR.profil, av = p && (p.inventaire || []).find(a => a.id === p.avatar);
+  z.innerHTML = `<span class="avatar${av && imgOk(av.fichier) ? " a-img" : ""}">${av && imgOk(av.fichier) ? visuel(av, 32) : esc((JOUEUR.pseudo || "?").charAt(0).toUpperCase())}</span>
+    <span><b>${esc(JOUEUR.pseudo)}</b>${p ? ` · <span id="pgGils">${nb(p.gils)} ${gilIcone()}</span>` : ""}</span>`;
+}
+
+/* =====================================================================
+   PAGE MINI-JEUX (mini-jeux.html) : grand format + règles de chaque jeu.
+   Le serveur décide de tout (tirage, réponses, chrono, points, Gils).
+   État Fermé / Test / Ouvert : script 31 ; « 5 images toujours » : script 32.
+   ===================================================================== */
+(() => {
+  const FORMATS = ["qcm", "saisie"];
+  const REGLES = {
+    qui: ["Une image de personnage (silhouette ou floutée) et 4 noms.", "5 images par défi, une partie par jour.", "Une erreur ne termine pas la partie : les points des bonnes réponses s'additionnent.", "Plus tu réponds vite, plus tu marques."],
+    rpguessr: ["Un décor de jeu : trouve le jeu et la zone parmi 4 choix.", "5 images par défi, une partie par jour.", "Les points s'additionnent jusqu'à la 5e image, même après une erreur.", "Plus tu réponds vite, plus tu marques."],
+    boss: ["Des indices (PV, faiblesses, silhouette) : retrouve le boss.", "5 questions, une partie par jour.", "La partie s'arrête à la première erreur."],
+    menu: ["Un écran de menu ou une police : quel est ce JRPG ?", "5 questions, une partie par jour.", "La partie s'arrête à la première erreur."],
+    replique: ["Une réplique culte : de quel jeu vient-elle ?", "5 questions, une partie par jour.", "La partie s'arrête à la première erreur."],
+    emojis: ["Un jeu résumé en emojis : tape son nom.", "Les fautes de frappe et les accents sont tolérés.", "5 questions, une partie par jour."],
+    special_nier: ["Questions difficiles sur NieR et Drakengard, à taper.", "Une seule partie, quand l'admin l'ouvre.", "Peu de Gils : c'est pour la gloire."],
+    special_ff: ["Questions difficiles sur Final Fantasy, à taper.", "Une seule partie, quand l'admin l'ouvre.", "Peu de Gils : c'est pour la gloire."],
+    survie: ["Les questions s'enchaînent et deviennent plus dures.", "Une erreur coûte un cœur.", "Une partie par jour : bats ton record."],
+    raid: ["Chaque bonne réponse frappe le boss de la semaine.", "Mode libre : rejouable, sans Gils.", "Les dégâts de tous les joueurs s'additionnent."],
+    encheres: ["Mise des jetons de manche avant de voir la question.", "Mode libre : rejouable, sans Gils."]
+  };
+  const REGLE_DEF = ["Bientôt jouable sur le site."];
+  const MJ = { liste: [], jeu: null, partie: null, minuteur: null };
+  const scene = $("mjScene"), liste = $("mjListe");
+  const ERR = { session_invalide: "Session expirée : reconnecte-toi sur l'accueil.", jeu_inactif: "Ce jeu est fermé pour l'instant.",
+    aucun_exercice: "Ce jeu n'a pas encore de contenu.", partie_finie: "Cette partie est terminée.", jeu_en_salon: "Ce jeu se jouera en salon." };
+  const msg = e => ERR[Object.keys(ERR).find(k => String(e && e.message).includes(k))] || "Erreur : " + (e && e.message || e);
+  const bandeau = () => MJ.jeu && MJ.jeu.etat === "test" ? `<p class="mode-test" role="note">Mode test : invisible pour le public · aucun Gil · hors classement</p>` : "";
+  const stop = () => { if (MJ.minuteur) { clearInterval(MJ.minuteur); MJ.minuteur = null; } };
+
+  async function demarrer() {
+    await chargerJoueur();
+    try { MJ.liste = await rpcJoueur("jeux_liste_acces", { p_token: JOUEUR.valide ? qzToken() : null }); } catch { MJ.liste = []; }
+    if (!Array.isArray(MJ.liste)) MJ.liste = [];
+    dessinerListe();
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (id && MJ.liste.some(j => j.id === id)) ouvrir(id);
+  }
+  function dessinerListe() {
+    if (!MJ.liste.length) { liste.innerHTML = `<div class="cp-vide"><b>Aucun mini-jeu ouvert pour l'instant</b>Reviens bientôt ! <a href="index.html">Retour à l'accueil</a></div>`; scene.hidden = true; return; }
+    liste.innerHTML = (MJ.liste.some(j => j.etat === "test") ? `<p class="mode-test" role="note">Mode test actif sur certains jeux : toi seul les vois</p>` : "")
+      + `<div class="mj-grand">${MJ.liste.map(j => { const ok = FORMATS.includes(j.format), r = ok ? (REGLES[j.id] || [j.descr || ""]) : REGLE_DEF;
+        return `<article class="mj-fiche" id="fiche-${esc(j.id)}">${j.etat === "test" ? `<span class="cp-tag" style="align-self:flex-start;position:static">TEST</span>` : ""}<h3>${esc(j.nom)}</h3>
+          <p class="qz-petit" style="margin:0">${esc(j.descr || "")}</p><ul>${r.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+          <div class="cp-actions"><button class="bouton" type="button" data-mj="${esc(j.id)}"${ok ? "" : " disabled"}>${ok ? "Jouer" : "Bientôt"}</button></div></article>`; }).join("")}</div>`;
+  }
+  const retour = () => `<div class="cp-actions"><button class="mini" type="button" data-act="liste">‹ Tous les mini-jeux</button></div>`;
+  const RX = /^(https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/medias\/|\/?medias\/)[a-z0-9_\/.-]+\.(webp|png|gif|jpe?g)$/i;
+  const classement = l => Array.isArray(l) && l.length ? `<table class="qz-classement"><thead><tr><th>#</th><th>Pseudo</th><th>Record</th></tr></thead><tbody>${l.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.pseudo)}</td><td>${nb(x.record)}</td></tr>`).join("")}</tbody></table>` : `<p class="qz-petit">Personne au classement pour l'instant.</p>`;
+  function montrer(html) { scene.hidden = false; $("mjSceneCorps").innerHTML = bandeau() + html; scene.scrollIntoView({ block: "start" }); }
+
+  async function ouvrir(id) {
+    stop(); MJ.jeu = MJ.liste.find(j => j.id === id); if (!MJ.jeu) return;
+    history.replaceState(null, "", "#" + encodeURIComponent(id));
+    $("mjTitre").textContent = MJ.jeu.nom;
+    if (!JOUEUR.valide) { montrer(`<p>Connecte-toi pour jouer : tes points et tes Gils sont liés à ton compte.</p><div class="cp-actions"><a class="bouton" href="index.html#quizz">Se connecter</a></div>` + retour()); return; }
+    montrer(`<p class="qz-petit">Chargement…</p>`);
+    let d; try { d = await rpcJoueur("jeux_mon_etat", { p_token: qzToken(), p_jeu: id }); } catch (e) { montrer(`<p class="cp-msg err">${esc(msg(e))}</p>` + retour()); return; }
+    if (!d || d.auth === false) { montrer(`<p class="cp-msg err">${esc(ERR.session_invalide)}</p>` + retour()); return; }
+    if (d.deja) return fin({ fini: true, points: d.points, detail: d.detail, classement: d.classement, deja: true });
+    if (d.vide) { montrer(`<div class="cp-vide"><b>${esc(MJ.jeu.nom)}</b>Aucun exercice pour l'instant.</div>` + retour()); return; }
+    montrer(`<ul>${(REGLES[id] || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul><div class="cp-actions"><button class="bouton" type="button" data-act="demarrer">${d.reprise ? "Reprendre" : "Jouer"}</button></div>` + retour());
+  }
+  async function jouer() {
+    try { afficher(await rpcJoueur("jeux_demarrer", { p_token: qzToken(), p_jeu: MJ.jeu.id })); }
+    catch (e) { montrer(`<p class="cp-msg err">${esc(msg(e))}</p>` + retour()); }
+  }
+  async function repondre(rep) {
+    stop(); $("mjSceneCorps").querySelectorAll("button, input").forEach(x => x.disabled = true);
+    try { afficher(await rpcJoueur("jeux_repondre", { p_token: qzToken(), p_partie: MJ.partie, p_reponse: rep })); }
+    catch (e) { montrer(`<p class="cp-msg err">${esc(msg(e))}</p>` + retour()); }
+  }
+  function afficher(d) {
+    if (!d) return;
+    if (d.partie) MJ.partie = d.partie;
+    if (d.deja) return fin({ fini: true, deja: true, classement: d.classement });
+    if (d.fini) return fin(d);
+    const f = d.forme || {}, v = Array.isArray(d.verdicts) && d.verdicts[0];
+    const img = f.indices && RX.test(f.indices.image || "") ? `<figure class="mj-image"><img class="pf-img" src="${esc(f.indices.image)}" alt="Image à reconnaître"></figure>` : "";
+    const zone = f.forme === "qcm" && Array.isArray(f.choix) ? `<div class="mj-choix">${f.choix.map(c => `<button type="button" data-v="${esc(c.v)}">${esc(c.t)}</button>`).join("")}</div>`
+      : `<form class="mj-saisie" data-form><input maxlength="120" autocomplete="off" aria-label="Ta réponse" placeholder="${esc(f.placeholder || "Ta réponse…")}"><button class="bouton" type="submit">Répondre</button></form>`;
+    $("mjSceneCorps").innerHTML = bandeau() + `<div class="mj-tete"><span>Manche ${nb(d.manche || 1)}${MJ.jeu && ["qui", "rpguessr"].includes(MJ.jeu.id) ? " / 5" : ""} · ${nb(d.points)} pts</span><span class="mj-chrono" id="mjChrono"></span></div>`
+      + (v ? `<p class="mj-verdict ${v.ok ? "bon" : "mauvais"}">${v.ok ? "Bonne réponse ! +" + nb(v.points) : "Raté."}</p>` : "")
+      + (d.message ? `<p class="cp-msg err">${esc(d.message)}</p>` : "")
+      + img + (f.indices && f.indices.meta ? `<p class="mj-meta">${esc(f.indices.meta)}</p>` : "") + `<p class="mj-question">${esc(f.question || "")}</p>` + zone;
+    const r0 = Math.round(Number(d.temps_restant != null ? d.temps_restant : d.chrono) || 0);
+    if (r0 > 0) { let r = r0; const c = $("mjChrono"); c.textContent = r + " s"; MJ.minuteur = setInterval(() => { r--; if (c.isConnected) c.textContent = Math.max(0, r) + " s"; if (r <= 0) stop(); }, 1000); }
+    const fm = $("mjSceneCorps").querySelector("[data-form]");
+    if (fm) { fm.onsubmit = e => { e.preventDefault(); const t = fm.querySelector("input").value.trim(); if (t) repondre(t); }; fm.querySelector("input").focus({ preventScroll: true }); }
+  }
+  function fin(d) {
+    stop();
+    const test = d.test || d.mode === "test";
+    $("mjSceneCorps").innerHTML = bandeau() + `<p><b>${d.deja ? "Défi du jour déjà joué." : "Partie terminée."}</b> ${d.points != null ? nb(d.points) + " points." : ""}</p>`
+      + (test ? `<p class="qz-petit">Partie de test : aucun Gil, hors classement.</p>` : (d.gils ? `<p>+ ${nb(d.gils)} ${gilIcone()}${d.premier_du_jour ? " (dont la prime du premier du jour)" : ""}</p>` : ""))
+      + (d.detail && d.detail.bonne_reponse ? `<p>La dernière réponse était : <b>${esc(d.detail.bonne_reponse)}</b></p>` : "")
+      + `<p class="qz-sous" style="margin-top:.8rem">Classement</p>` + classement(d.classement)
+      + `<div class="cp-actions">${test ? `<button class="bouton" type="button" data-act="demarrer">Rejouer (test)</button>` : ""}<button class="mini" type="button" data-act="liste">‹ Tous les mini-jeux</button></div>`;
+    if (!test && d.gils) chargerJoueur();
+  }
+  liste.addEventListener("click", e => { const b = e.target.closest("button[data-mj]"); if (b && !b.disabled) ouvrir(b.dataset.mj); });
+  scene.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b || b.disabled) return;
+    if (b.dataset.v !== undefined) return repondre("v:" + b.dataset.v);
+    if (b.dataset.act === "demarrer") return jouer();
+    if (b.dataset.act === "liste") { stop(); scene.hidden = true; MJ.jeu = null; history.replaceState(null, "", location.pathname); $("mjListe").scrollIntoView({ block: "start" }); }
+  });
+  demarrer();
+})();
+</script>
+</body>
+</html>
