@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat · Chapeau Optique</title>
+<!--
+  OVERLAY DE CHAT TWITCH pour OBS (« Source navigateur »), page statique, fond transparent.
+  Exemples :
+    chat.html?chaine=chapeauoptique&style=vertical
+    chat.html?chaine=chapeauoptique&style=horizontal
+    chat.html?chaine=chapeauoptique&style=ephemere&duree=12
+  Options : chaine, style (vertical | horizontal | ephemere), lignes (1 à 20), duree (secondes, 0 = jamais ;
+  par défaut 12 en éphémère), taille (50 à 250 %), largeur (en px), cadre=0 (sans cadre),
+  bots=0 (montrer les bots), commandes=1 (montrer les !commandes), masquer=pseudo1,pseudo2,
+  son=1 (petit son à chaque message), demo=1 (messages simulés, sans Twitch).
+  Lecture du chat SANS jeton (IRC anonyme de Twitch). Photos de profil : Edge Function
+  Supabase « twitch-avatars » (voir CONFIG). Aucun secret dans ce fichier.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Exo+2:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --acier1:#9fb6d8;--acier2:#4d6187;--acier3:#1c2a48;--nuit1:#0c1a3d;--nuit2:#13285a;--nuit3:#1d2f6e;
+  --or:#e8b54a;--texte:#eef3ff;--ombre:rgba(0,0,0,.55);--largeur:40rem;--av:3.4rem;
+  --titre:"Cinzel",Georgia,serif;--corps:"Exo 2","Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:transparent!important;overflow:hidden;color:var(--texte);font-family:var(--corps)}
+body{padding:.5rem}
+
+/* ---------- ligne de message (commune aux 3 styles) ---------- */
+.ligne{display:flex;align-items:center;gap:.7rem;min-height:var(--av);will-change:transform,opacity;animation:entree .38s cubic-bezier(.2,.8,.25,1) both}
+.av{flex:none;width:var(--av);height:var(--av);padding:3px;background:linear-gradient(145deg,#e5edf9,var(--acier1) 35%,var(--acier2) 70%,#c9d6ec);
+  clip-path:polygon(16% 0,84% 0,100% 16%,100% 84%,84% 100%,16% 100%,0 84%,0 16%)}
+.av > *{display:grid;place-items:center;width:100%;height:100%;object-fit:cover;background:#0b1530;font:700 1.25rem var(--titre);color:#fff;
+  clip-path:polygon(15% 0,85% 0,100% 15%,100% 85%,85% 100%,15% 100%,0 85%,0 15%)}
+.barre{position:relative;flex:1 1 auto;min-width:0;padding:.32rem 1.1rem .32rem .95rem;margin-left:.55rem;
+  background:linear-gradient(90deg,rgba(54,98,178,.62),rgba(30,58,128,.5) 70%,rgba(26,48,108,.32));
+  border:1px solid rgba(132,178,255,.38);border-left:3px solid var(--lis,#ffd34d);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 6px rgba(0,0,0,.35);
+  clip-path:polygon(-.75rem 50%,-3px calc(50% - .5rem),-3px 0,calc(100% - .8rem) 0,100% .8rem,100% 100%,-3px 100%,-3px calc(50% + .5rem))}   /* le chevron coloré à gauche reste visible */
+.barre::before{content:"";position:absolute;left:-.62rem;top:50%;width:.6rem;height:.9rem;transform:translateY(-50%);background:var(--lis,#ffd34d);
+  clip-path:polygon(100% 0,100% 100%,0 50%);filter:drop-shadow(0 0 3px var(--lis,#ffd34d))}
+.pseudo{font-weight:700;margin-right:.45rem;text-shadow:0 1px 2px var(--ombre)}
+.txt{text-shadow:0 1px 2px var(--ombre);overflow-wrap:anywhere}
+.barre .contenu{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:1.02rem;line-height:1.32}
+.action .txt{font-style:italic;color:var(--lis)}
+.emote{height:1.6em;width:auto;vertical-align:middle;margin:-.25em .08em}
+.sort{animation:sortie .42s ease-in forwards}
+@keyframes entree{from{opacity:0;transform:translateX(-1.6rem) scale(.98)}to{opacity:1;transform:none}}
+@keyframes sortie{to{opacity:0;transform:translateX(-1.4rem)}}
+
+/* ---------- style VERTICAL : le cadre « CHAT » ---------- */
+.cadre{position:relative;width:var(--largeur);padding:3px;
+  background:linear-gradient(160deg,#dfe8f7,var(--acier1) 18%,var(--acier2) 45%,var(--acier3) 70%,var(--acier1));
+  clip-path:polygon(1.6rem 0,calc(100% - 1.6rem) 0,100% 1.6rem,100% calc(100% - 1.6rem),calc(100% - 1.6rem) 100%,1.6rem 100%,0 calc(100% - 1.6rem),0 1.6rem);
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.cadre-in{position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 85% 65%,rgba(70,110,200,.22),transparent 55%),linear-gradient(170deg,var(--nuit3),var(--nuit2) 40%,var(--nuit1));
+  clip-path:polygon(1.5rem 0,calc(100% - 1.5rem) 0,100% 1.5rem,100% calc(100% - 1.5rem),calc(100% - 1.5rem) 100%,1.5rem 100%,0 calc(100% - 1.5rem),0 1.5rem)}
+.tete{position:relative;display:flex;align-items:center;height:3.3rem;padding:0 1.6rem;
+  background:linear-gradient(90deg,rgba(80,92,190,.75),rgba(48,62,150,.6) 55%,rgba(30,40,110,.35));border-bottom:2px solid transparent;
+  border-image:linear-gradient(90deg,#8a5a12,var(--or) 25%,#ffe9a8 50%,var(--or) 75%,#8a5a12) 1}
+.tete h1{margin:0;font:italic 700 1.85rem var(--titre);letter-spacing:.06em;color:#fff;text-shadow:0 0 8px rgba(140,190,255,.8),0 2px 3px #000}
+.cristal{position:absolute;right:-.2rem;top:-.35rem;width:5.2rem;height:5.2rem;filter:drop-shadow(0 0 6px rgba(120,190,255,.8))}
+.rune{position:absolute;right:-3rem;bottom:-3rem;width:22rem;height:22rem;opacity:.12;pointer-events:none}
+.liste{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:.5rem;padding:.8rem 1.3rem 1rem;height:calc(var(--lignes) * (var(--av) + .5rem) + 1.3rem)}
+.vide{color:rgba(200,215,255,.45);font-style:italic;padding:0 0 .5rem .3rem}
+.style-vertical.sans-cadre .liste{padding:0}
+
+/* ---------- style HORIZONTAL : bandeau ---------- */
+.style-horizontal body,.style-horizontal{--av:2.9rem}
+.style-horizontal .cadre{width:var(--largeur-h,calc(100vw - 1rem))}
+.style-horizontal .cadre,.style-horizontal .cadre-in{clip-path:polygon(1rem 0,calc(100% - 1rem) 0,100% 1rem,100% calc(100% - 1rem),calc(100% - 1rem) 100%,1rem 100%,0 calc(100% - 1rem),0 1rem)}
+.style-horizontal .cadre-in{display:flex;align-items:stretch}
+.style-horizontal .tete{flex:none;height:auto;padding:0 1.4rem;border-bottom:0;border-right:2px solid var(--or)}
+.style-horizontal .tete h1{font-size:1.5rem}
+.style-horizontal .cristal,.style-horizontal .rune{display:none}
+.style-horizontal .liste{flex:1 1 auto;flex-direction:row;align-items:center;justify-content:flex-end;height:auto;min-height:4.4rem;padding:.6rem 1rem;overflow:hidden;gap:1.4rem}
+.style-horizontal .ligne{flex:0 1 auto;max-width:30rem;min-width:12rem}
+.style-horizontal .vide{padding:0}
+@keyframes entree-h{from{opacity:0;transform:translateX(2rem)}to{opacity:1;transform:none}}
+@keyframes sortie-h{to{opacity:0;transform:translateX(-2rem)}}
+.style-horizontal .ligne{animation-name:entree-h}
+.style-horizontal .ligne.sort{animation:sortie-h .42s ease-in forwards}
+
+/* ---------- style ÉPHÉMÈRE : sans cadre, en bas à gauche ---------- */
+.style-ephemere .liste{overflow:visible;position:fixed;left:1.5rem;bottom:1.5rem;width:var(--largeur);height:auto;padding:0;gap:.55rem}
+.style-ephemere .barre{background:linear-gradient(90deg,rgba(28,52,118,.86),rgba(20,38,92,.78) 70%,rgba(20,38,92,.6))}
+</style>
+</head>
+<body>
+<div class="cadre" id="cadre">
+  <div class="cadre-in">
+    <div class="tete"><h1>CHAT</h1>
+      <svg class="cristal" viewBox="0 0 100 100" aria-hidden="true">
+        <defs><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9f6ff"/><stop offset=".45" stop-color="#5aa6ff"/><stop offset="1" stop-color="#1b3c9a"/></linearGradient></defs>
+        <path d="M66 4 L74 30 L96 24 L80 44 L94 62 L72 58 L64 92 L54 60 L30 66 L46 46 L28 30 L52 32 Z" fill="url(#gc)" stroke="#d8ecff" stroke-width="1.5"/>
+        <circle cx="62" cy="46" r="11" fill="none" stroke="#eaf6ff" stroke-width="2.4"/><path d="M62 46 m-5 0 a5 5 0 1 1 5 5" fill="none" stroke="#eaf6ff" stroke-width="2"/>
+      </svg>
+    </div>
+    <svg class="rune" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#9cc2ff" stroke-width="3"><circle cx="100" cy="100" r="92"/><circle cx="100" cy="100" r="74"/>
+      <path d="M100 26 L164 138 L36 138 Z"/><path d="M100 174 L36 62 L164 62 Z"/><circle cx="100" cy="100" r="22"/></g></svg>
+    <div class="liste" id="liste"><div class="vide" id="vide">En attente des messages…</div></div>
+  </div>
+</div>
+<script>
+"use strict";
+/* ===== CONFIGURATION (à adapter) =====
+   Projet Supabase qui héberge l'Edge Function « twitch-avatars ». La clé est la clé PUBLIQUE
+   (anon / publishable) du projet : ce n'est pas un secret. Laisser supabaseUrl vide = pas de photo
+   de profil (initiales colorées). */
+const CONFIG = {
+  supabaseUrl: "https://zdnvvokecziiwdcrmzwv.supabase.co",
+  cleAnon: "sb_publishable_dDmIBev0F6b6g_VRq7_5iA_eEZNUe3g",
+  fonction: "twitch-avatars",
+  irc: "wss://irc-ws.chat.twitch.tv:443"
+};
+
+/* ===== Options par l'adresse ===== */
+const Q = new URLSearchParams(location.search);
+const borne = (v, d, a, b) => { const n = Number(v); return Number.isFinite(n) && v !== null && v !== "" ? Math.min(b, Math.max(a, n)) : d; };
+const STYLE = ["vertical", "horizontal", "ephemere"].includes(Q.get("style")) ? Q.get("style") : "vertical";
+const OPT = {
+  chaine: (Q.get("chaine") || "chapeauoptique").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 25) || "chapeauoptique",
+  lignes: Math.round(borne(Q.get("lignes"), STYLE === "horizontal" ? 4 : 8, 1, 20)),
+  duree: borne(Q.get("duree"), STYLE === "ephemere" ? 12 : 0, 0, 3600),
+  taille: borne(Q.get("taille"), 100, 50, 250),
+  largeur: borne(Q.get("largeur"), 0, 200, 4000),
+  cadre: Q.get("cadre") !== "0" && STYLE !== "ephemere",
+  bots: Q.get("bots") !== "0",
+  commandes: Q.get("commandes") === "1",
+  son: Q.get("son") === "1",
+  demo: Q.get("demo") === "1",
+  masquer: new Set((Q.get("masquer") || "").toLowerCase().split(",").map(s => s.trim()).filter(Boolean))
+};
+const BOTS = new Set(["nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "soundalerts", "sery_bot", "botisimo", "kofistreambot", "pokemoncommunitygame", "commanderroot"]);
+const LISERES = ["#ffd34d", "#b07cff", "#4fa3ff", "#5ad17a", "#ff5ccd", "#ff9a3c", "#3fe0e6", "#9d6bff"];
+
+document.documentElement.classList.add("style-" + STYLE);
+document.documentElement.style.fontSize = (16 * OPT.taille / 100) + "px";
+if (OPT.largeur) document.documentElement.style.setProperty(STYLE === "horizontal" ? "--largeur-h" : "--largeur", OPT.largeur + "px");
+document.documentElement.style.setProperty("--lignes", OPT.lignes);
+const cadre = document.getElementById("cadre"), liste = document.getElementById("liste");
+if (!OPT.cadre) {   // éphémère, ou cadre=0 : seulement les lignes
+  document.documentElement.classList.add("sans-cadre");
+  document.body.prepend(liste); cadre.remove();
+}
+
+/* ===== Affichage ===== */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hash = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.codePointAt(0)) >>> 0; return h; };
+const couleurSure = c => /^#[0-9a-f]{6}$/i.test(c || "") ? c : null;
+// pseudo lisible sur le fond bleu : on éclaircit les couleurs trop sombres
+function lisible(c) {
+  const n = parseInt(c.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255, l = .2126 * r + .7152 * g + .0722 * b;
+  if (l >= 110) return c;
+  const k = 110 / Math.max(l, 1), f = v => Math.min(255, Math.round(v * k + 40));
+  return "#" + [f(r), f(g), f(b)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+function texteAvecEmotes(texte, tagEmotes) {
+  const cp = Array.from(texte).slice(0, 400), places = [];
+  (tagEmotes || "").split("/").forEach(e => { const [id, pos] = e.split(":"); if (!/^[\w-]+$/.test(id || "") || !pos) return;
+    pos.split(",").forEach(p => { const [s, f] = p.split("-").map(Number); if (Number.isInteger(s) && Number.isInteger(f) && s <= f && f < cp.length) places.push({ s, f, id }); }); });
+  places.sort((a, b) => a.s - b.s);
+  let html = "", i = 0;
+  for (const p of places) {
+    if (p.s < i) continue;
+    html += esc(cp.slice(i, p.s).join(""));
+    html += `<img class="emote" alt="${esc(cp.slice(p.s, p.f + 1).join(""))}" src="https://static-cdn.jtvnw.net/emoticons/v2/${encodeURIComponent(p.id)}/default/dark/2.0">`;
+    i = p.f + 1;
+  }
+  return html + esc(cp.slice(i).join(""));
+}
+function initiales(m) {
+  const c = m.couleur || LISERES[hash(m.login) % LISERES.length];
+  return `<span style="background:linear-gradient(145deg,${c},#0b1530 120%)">${esc((m.nom || "?").trim().charAt(0).toUpperCase())}</span>`;
+}
+function visuel(m) {
+  const url = m.avatar || AVATARS.get(m.userId);
+  return url ? `<img alt="" src="${esc(url)}" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${esc((m.nom || "?").charAt(0).toUpperCase())}'}))">` : initiales(m);
+}
+let actx = null;
+function bip() { if (!OPT.son) return; try { actx = actx || new AudioContext(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(.05, actx.currentTime); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + .12); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + .13); } catch { } }
+
+function sortir(el) {
+  if (!el || el.classList.contains("sort")) return;
+  el.classList.add("sort");
+  const fin = () => el.remove();
+  el.addEventListener("animationend", fin, { once: true }); setTimeout(fin, 700);
+}
+function ajouter(m) {
+  const vide = document.getElementById("vide"); if (vide) vide.remove();
+  const el = document.createElement("div");
+  el.className = "ligne" + (m.action ? " action" : "");
+  el.dataset.id = m.id || ""; el.dataset.user = m.userId || ""; el.dataset.login = m.login;
+  el.style.setProperty("--lis", LISERES[hash(m.login) % LISERES.length]);
+  el.innerHTML = `<div class="av" data-av="${esc(m.userId || "")}">${visuel(m)}</div><div class="barre"><div class="contenu"><span class="pseudo" style="color:${esc(lisible(m.couleur || LISERES[hash(m.login) % LISERES.length]))}">${esc(m.nom)}</span><span class="txt">${m.html}</span></div></div>`;
+  liste.append(el); bip();
+  const vivantes = [...liste.querySelectorAll(".ligne:not(.sort)")];
+  vivantes.slice(0, Math.max(0, vivantes.length - OPT.lignes)).forEach(sortir);   // la plus ancienne sort en douceur
+  if (OPT.duree > 0) setTimeout(() => sortir(el), OPT.duree * 1000);
+  if (m.userId) LOGINS.set(m.userId, m.login);
+  if (m.userId && !m.avatar && !AVATARS.has(m.userId)) aDemander.add(m.userId);
+}
+const retirer = filtre => liste.querySelectorAll(".ligne").forEach(el => { if (filtre(el)) sortir(el); });
+
+/* ===== Photos de profil : Edge Function, par lots, avec cache local (24 h) ===== */
+const AVATARS = new Map(), aDemander = new Set(), LOGINS = new Map(), essaiDecapi = new Set();
+try { const c = JSON.parse(localStorage.getItem("ovAvatars") || "{}"); Object.entries(c).forEach(([k, [u, t]]) => { if (Date.now() - t < 864e5) AVATARS.set(k, u); }); } catch { }
+function memoriser() { try { localStorage.setItem("ovAvatars", JSON.stringify(Object.fromEntries([...AVATARS].slice(-500).map(([k, u]) => [k, [u, Date.now()]])))); } catch { } }
+let enCours = false;
+function poserAvatar(id, url) {
+  if (typeof url !== "string" || !/^https:\/\/[^\s"'<>]+$/.test(url)) return false;
+  AVATARS.set(id, url);
+  liste.querySelectorAll(`.av[data-av="${CSS.escape(id)}"]`).forEach(av => { const nom = av.parentElement.querySelector(".pseudo"); av.innerHTML = visuel({ userId: id, nom: nom ? nom.textContent : "?" }); });
+  return true;
+}
+// repli secondaire : decapi.me (texte brut = adresse de l'avatar), 3 à la fois, une seule tentative par compte
+async function decapi(ids) {
+  const file = ids.filter(id => LOGINS.get(id) && !essaiDecapi.has(id));
+  const tache = async () => { for (let id; (id = file.shift());) { essaiDecapi.add(id);
+    try { const r = await fetch("https://decapi.me/twitch/avatar/" + encodeURIComponent(LOGINS.get(id))); if (r.ok) poserAvatar(id, (await r.text()).trim()); } catch { } } };
+  await Promise.all([tache(), tache(), tache()]);
+}
+async function demanderAvatars() {
+  if (enCours || !aDemander.size) return;
+  const ids = [...aDemander].slice(0, 100); ids.forEach(i => aDemander.delete(i)); enCours = true;
+  let recus = {};
+  if (CONFIG.supabaseUrl) {
+    try {   // 1) Edge Function « twitch-avatars » (projet Supabase du site)
+      const r = await fetch(`${CONFIG.supabaseUrl}/functions/v1/${CONFIG.fonction}?ids=${ids.join(",")}`, { headers: { apikey: CONFIG.cleAnon } });
+      const d = await r.json().catch(() => ({})); recus = (d && d.avatars) || {};
+    } catch { recus = {}; }
+  }
+  Object.entries(recus).forEach(([id, url]) => poserAvatar(id, url));
+  await decapi(ids.filter(id => !AVATARS.has(id)));   // 2) decapi.me ; 3) sinon les initiales restent
+  memoriser(); enCours = false;
+}
+setInterval(demanderAvatars, 900);
+
+/* ===== Chat Twitch : IRC anonyme (lecture seule, sans jeton) ===== */
+function unesc(v) { return v.replace(/\\(s|:|\\|r|n)/g, (x, c) => ({ s: " ", ":": ";", "\\": "\\", r: "\r", n: "\n" }[c])); }
+function analyser(l) {
+  const r = { tags: {}, prefixe: "", cmd: "", params: [], fin: null };
+  if (l[0] === "@") { const s = l.indexOf(" "); l.slice(1, s).split(";").forEach(kv => { const k = kv.indexOf("="); r.tags[k < 0 ? kv : kv.slice(0, k)] = k < 0 ? "" : unesc(kv.slice(k + 1)); }); l = l.slice(s + 1); }
+  if (l[0] === ":") { const s = l.indexOf(" "); r.prefixe = l.slice(1, s); l = l.slice(s + 1); }
+  const t = l.indexOf(" :"); if (t >= 0) { r.fin = l.slice(t + 2); l = l.slice(0, t); }
+  const p = l.split(" ").filter(Boolean); r.cmd = p[0] || ""; r.params = p.slice(1);
+  return r;
+}
+function message(r) {
+  const login = (r.prefixe.split("!")[0] || "").toLowerCase();
+  let texte = r.fin || "", action = false;
+  if (texte.startsWith("\u0001ACTION ") && texte.endsWith("\u0001")) { texte = texte.slice(8, -1); action = true; }
+  if (OPT.masquer.has(login) || (OPT.bots && BOTS.has(login))) return;
+  if (!OPT.commandes && texte.trim().startsWith("!")) return;
+  ajouter({ id: r.tags.id, userId: r.tags["user-id"], login, nom: r.tags["display-name"] || login, couleur: couleurSure(r.tags.color), html: texteAvecEmotes(texte, r.tags.emotes), action });
+}
+let ws = null, attente = 1000;
+function connecter() {
+  ws = new WebSocket(CONFIG.irc);
+  ws.onopen = () => { attente = 1000;
+    ws.send("CAP REQ :twitch.tv/tags twitch.tv/commands"); ws.send("PASS SCHMOOPIIE");
+    ws.send("NICK justinfan" + (10000 + Math.floor(Math.random() * 80000))); ws.send("JOIN #" + OPT.chaine); };
+  ws.onmessage = ev => String(ev.data).split("\r\n").filter(Boolean).forEach(l => {
+    const r = analyser(l);
+    if (r.cmd === "PING") ws.send("PONG :" + (r.fin || "tmi.twitch.tv"));
+    else if (r.cmd === "PRIVMSG") message(r);
+    else if (r.cmd === "CLEARMSG") retirer(el => el.dataset.id && el.dataset.id === r.tags["target-msg-id"]);       // message effacé par un modérateur
+    else if (r.cmd === "CLEARCHAT") { const u = r.tags["target-user-id"], lg = (r.fin || "").toLowerCase();               // ban / timeout, ou /clear
+      retirer(el => (!u && !lg) || (u && el.dataset.user === u) || (lg && el.dataset.login === lg)); }
+    else if (r.cmd === "RECONNECT") ws.close();
+  });
+  ws.onclose = () => { setTimeout(connecter, attente); attente = Math.min(attente * 2, 30000); };
+}
+
+/* ===== Démo (?demo=1) : messages simulés, sans Twitch ni réseau ===== */
+function demo() {
+  const gens = [["Lettwave", "#ff5ccd"], ["Kweh_Kweh", "#ffd34d"], ["MoogleDuNord", "#4fa3ff"], ["Sephi_Roth", "#9d6bff"], ["Chocobide", "#5ad17a"], ["TifaFan_92", "#ff9a3c"], ["Nightbot", "#7f7f7f"], ["Yuna_Kh", "#3fe0e6"]];
+  const phrases = ["Kweh ! Ce boss est énorme", "GG pour le combo !!", "La musique de cette zone est incroyable", "!discord", "Allez le chocobo jaune, on y croit", "Je parie 200 Gils sur Chocobide 🐤", "Ce cadre de chat a trop la classe", "/me lance une Queue de Phénix"];
+  const svg = (c, l) => "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${c}"/><circle cx="32" cy="25" r="13" fill="#fff" opacity=".85"/><rect x="12" y="42" width="40" height="22" rx="11" fill="#fff" opacity=".85"/><text x="32" y="31" font-size="16" text-anchor="middle" font-family="Arial" font-weight="700" fill="${c}">${l}</text></svg>`);
+  let k = 0;
+  const un = () => { const [n, c] = gens[k % gens.length], p = phrases[(k * 3) % phrases.length]; k++;
+    const action = p.startsWith("/me "), t = action ? p.slice(4) : p;
+    if (OPT.bots && BOTS.has(n.toLowerCase())) return;
+    if (!OPT.commandes && t.startsWith("!")) return;
+    ajouter({ id: "demo" + k, userId: "", login: n.toLowerCase(), nom: n, couleur: c, avatar: k % 5 === 4 ? null : svg(c, n.charAt(0)), html: texteAvecEmotes(t, ""), action }); };
+  for (let i = 0; i < Math.min(OPT.lignes, 5); i++) un();
+  setInterval(un, 1400);
+}
+if (OPT.demo) demo(); else connecter();
+</script>
+</body>
+</html>
